@@ -32,10 +32,11 @@ except:
 # converts the date strings in the index into pandas datetime format
 closePrice.index = pd.to_datetime(closePrice.index)
 closePrice.plot()
-plt.show()
+#plt.show()
 
+smaMAX = closePrice.rolling(window=10).mean()
 sma50 = closePrice.rolling(window=50).mean()
-print(sma50)
+print(smaMAX)
 
 #chart style
 plt.style.use('dark_background')
@@ -45,11 +46,12 @@ plt.figure(figsize=(12, 6))
 #plotting price and SMA line in plt
 plt.plot(closePrice, label='Adj Close', linewidth=2)
 plt.plot(sma50, label='50 day rolling SMA', linewidth=1)
+plt.plot(smaMAX, label='10 dat rolling SMA', linewidth=2)
 
-#adds title and labels on the axes, making legend visable
+#adds title and labels on the axes, making legend visible
 plt.xlabel('Date')
 plt.ylabel('Adjusted closing price ($)')
-plt.title('Price with a single Simple Moving Average')
+plt.title('Price with Simple Moving Average for 50 and 10 days')
 plt.legend()
 
 plt.show()
