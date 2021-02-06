@@ -31,6 +31,7 @@ except:
 
 # converts the date strings in the index into pandas datetime format
 closePrice.index = pd.to_datetime(closePrice.index)
+
 # closePrice.plot()
 # plt.show()
 print('\nPlease enter day number for SMAs from least to greatest:')
@@ -71,6 +72,8 @@ SMAPrice_df = pd.DataFrame({
     'SMA ' + str(tempSmaNum2): smaSecond,
     'SMA ' + str(tempSmaNum3): smaThird
 })
+
+#
 
 #saves data as csv file with correct name
 SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_SMA.csv')
