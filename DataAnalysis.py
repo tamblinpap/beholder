@@ -72,4 +72,5 @@ SMAPrice_df = pd.DataFrame({
     'SMA ' + str(tempSmaNum3): smaThird
 })
 
+#saves data as csv file with correct name
 SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_SMA.csv')
