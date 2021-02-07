@@ -34,6 +34,8 @@ closePrice.index = pd.to_datetime(closePrice.index)
 
 # closePrice.plot()
 # plt.show()
+
+# SMA creation
 print('\nPlease enter day number for SMAs from least to greatest:')
 print('First num: ', end='')
 tempSmaNum1 = int(input())
@@ -46,8 +48,11 @@ smaFirst = closePrice.rolling(window=tempSmaNum1).mean()
 smaSecond = closePrice.rolling(window=tempSmaNum2).mean()
 smaThird = closePrice.rolling(window=tempSmaNum3).mean()
 
+# WMA and EMA
+
+
 #chart style
-plt.style.use('dark_background')
+plt.style.use('fivethirtyeight')
 #chart size
 plt.figure(figsize=(12, 6))
 
