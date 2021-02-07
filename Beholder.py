@@ -13,35 +13,51 @@ from pycoingecko import CoinGeckoAPI
 
 userInput = ''
 
+
+def SaveAsCSV(dataFrame):
+    dataFrame.to_csv('Data/' + dataFrame + '.csv')
+
+
 def ParseUserInput(input):
     if input == 'exit':
         return
 
+
 def GetData(tickerCode):
     print('Getting historical data for ' + tickerCode + '...')
+
 
 def AlgoTester(dataFrame, algo, stockName):
     print('Preparing to test algorithm ' + algo + ' on ' + stockName + '...')
 
+
 def ModeTest():
     print('Launching in test mode...')
+
 
 def ModePaperTrade():
     print('Launching in paper trade mode...')
 
+
 def ModeActualTrade():
     print('Launching in actual trade mode...')
 
+
 # Starting user interaction
-print('Welcome to the "Beholder" bot!\nPlease refer to the README.md file for operation instructions')
-print('The creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
+beholderText = open('Data\Beholder.txt')
+for element in beholderText:
+    print(element)
+print('Welcome to the "Beholder" bot!\n')
+print('Please refer to the README.md file for operation instructions')
+print('\nThe creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
 print('The creator of this bot is not a financial advisor.  Use at your own risk')
-print('\nBeholder Bot was created by Tamblin Papendorp')
+print('Beholder Bot was created by Tamblin Papendorp')
 print('\nWhat mode to you want to launch Beholder in?')
 
-if userInput != 'exit':
+while userInput != 'exit':
     print('BeholderCMD: ', end='')
+    userInput = input()
     ParseUserInput(userInput)
-else:
-    print('\nGoodbye!')
-    sys.exit();
+
+print('\nGoodbye!')
+sys.exit()
