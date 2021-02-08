@@ -11,7 +11,7 @@ import math
 from datetime import datetime
 from pycoingecko import CoinGeckoAPI
 
-
+cg = CoinGeckoAPI()
 userInput = ''
 currentMode = ''
 
@@ -46,6 +46,15 @@ def ParseUserInput(inputStr):
 
 def GetData(tickerCode):
     print('Attempting to get historical data for ' + tickerCode + '...')
+    stock = yf.download(tickers=tickerCode, period='MAX')
+    if len(stock) < 0:
+        print("\nNot a stock, trying crypto...")
+        stock = yf.download(tickers=tickerCode + "-USD", period='MAX')
+    if len(stock) > 1:
+        print('Data for ' + tickerCode + ' found and imported!\n')
+        stock.to_csv('Data/' + tickerCode + '_stats.csv')
+    else:
+        print('Not a valid ticker for stock/crypto\n')
 
 
 def AlgoTester(dataFrame, algo, stockName):
@@ -79,7 +88,7 @@ def ModeActualTrade():
 
 # Starting user interaction
 if currentMode == '':
-    beholderText = open('.\Data\Beholder.txt')
+    beholderText = open('Info/Beholder.txt')
     for element in beholderText:
         print(element)
     print('Welcome to the "Beholder" bot!\n')
