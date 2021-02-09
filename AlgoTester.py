@@ -8,13 +8,16 @@ dataSheet = input()
 
 if dataSheet[len(dataSheet)-7:len(dataSheet)-4] == 'SMA':
     print('\nThis is a test of the 3 layer rolling SMA algo.')
-    print('The program starts with 100$ and invests it according to the algorithm (once at least all the SMAs have time to be generated)')
+    print('The program starts with 100$ and invests it according to the algorithm (once at least all the SMAs have '
+          'time to be generated)')
     dataParsed = pd.read_csv(dataSheet, index_col='Date')
     lastPrice = 0.0
     USD = 100.0
     Crypto = 0.0
     dayNum = 1
     tradeDates = ['']*0
+    originalPrice = dataParsed.iloc[0, 0]
+
     print('\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[len(dataParsed)-1])
     for day in dataParsed.index:
         print('\nDay: ' + str(dayNum) + ' (' + day + ')')
@@ -51,6 +54,7 @@ if dataSheet[len(dataSheet)-7:len(dataSheet)-4] == 'SMA':
     print('Bot placed trades on these days:')
     print(tradeDates)
     if USD > 0.0:
-        print('Final value of portfolio increased by ' + str(round(USD)) + '%')
+        print('Final value of portfolio ' + str(round(USD)) + '% of original with algo')
     else:
-        print('Final value of portfolio increased by ' + str(round(lastPrice*Crypto)) + '%')
+        print('Final value of portfolio ' + str(round(lastPrice*Crypto)) + '% of original with algo')
+    print('If no algo was implemented portfolio would be ' + str((lastPrice/originalPrice)*100) + '% of original')
