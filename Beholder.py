@@ -4,6 +4,7 @@
 # This bot and supplementary explanatory .py scripts where done by Tamblin Papendorp
 
 import sys
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
@@ -36,8 +37,10 @@ def ParseUserInput(inputStr):
     elif currentMode == 'test':
         if inputStr == 'menu':
             return
-        elif inputStr.isupper():
-            GetData(inputStr)
+        elif inputStr[0:2] == '-g':
+            GetData(inputStr[3:len(inputStr)])
+        elif inputStr[0:3] == '-ls':
+            print(os.listdir('Data'))
         else:
             print('Not a valid command. Refer to readme on how to use test mode. type return to go back to menu')
     else:
@@ -68,7 +71,8 @@ def ModeTest():
         print('Launching in test mode...\n')
         print('Test mode is used mainly for testing the effectiveness of Beholder and its eyes on past data.')
         print('Test mode will run a simulation on all historical data available of a certain stock or crypto.')
-        print('Enter ticker info for holding you would like to track.\n')
+        print('Enter ticker info for holding you would like to get historical info with -g.')
+        print('Use -ls to list the imported stocks/crypto.\n')
     currentMode = 'test'
     while userInput != 'return' and userInput != 'exit':
         print('BeholderCMD/Test: ', end='')

@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 
 isCrypto = False
@@ -48,8 +49,12 @@ smaFirst = closePrice.rolling(window=tempSmaNum1).mean()
 smaSecond = closePrice.rolling(window=tempSmaNum2).mean()
 smaThird = closePrice.rolling(window=tempSmaNum3).mean()
 
-# WMA and EMA
+# WMA creation
+weights = np.arange(1, 11)
+wma10 = closePrice.rolling(10).apply(lambda prices: np.dot(prices, weights)/weights.sum(), raw=True)
+# print(wma10.head(20))
 
+# EMA creation
 
 #chart style
 plt.style.use('fivethirtyeight')
@@ -61,6 +66,8 @@ plt.plot(closePrice, label='Adj Close', linewidth=2)
 plt.plot(smaFirst, label=str(tempSmaNum1) + ' day rolling SMA', linewidth=1)
 plt.plot(smaSecond, label=str(tempSmaNum2) + ' day rolling SMA', linewidth=2)
 plt.plot(smaThird, label=str(tempSmaNum3) + ' day rolling SMA', linewidth=3)
+plt.plot(wma10, label='10  day rolling WMA', linewidth=2)
+
 
 #adds title and labels on the axes, making legend visible
 plt.xlabel('Date')
@@ -75,7 +82,8 @@ SMAPrice_df = pd.DataFrame({
     'Adj Close': closePrice,
     'SMA ' + str(tempSmaNum1): smaFirst,
     'SMA ' + str(tempSmaNum2): smaSecond,
-    'SMA ' + str(tempSmaNum3): smaThird
+    'SMA ' + str(tempSmaNum3): smaThird,
+    'WMA10': wma10
 })
 
 #
