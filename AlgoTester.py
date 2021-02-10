@@ -6,17 +6,20 @@ print('Please link the csv file with full path: ', end='')
 
 dataSheet = input()
 
-if dataSheet[len(dataSheet)-7:len(dataSheet)-4] == 'SMA':
+if dataSheet[len(dataSheet)-6:len(dataSheet)-4] == 'MA':
     print('\nThis is a test of the 3 layer rolling SMA algo.')
     print('The program starts with 100$ and invests it according to the algorithm (once at least all the SMAs have '
           'time to be generated)')
     dataParsed = pd.read_csv(dataSheet, index_col='Date')
     lastPrice = 0.0
-    USD = 100.0
-    Crypto = 0.0
+    originalPrice = dataParsed.loc[dataParsed.index[0], dataParsed.columns[0]]
     dayNum = 1
-    tradeDates = ['']*0
-    originalPrice = dataParsed.iloc[0, 0]
+    holdings = [['SMA', 100.0, 0.0], ['WMA', 100.0, 0.0], ['EMA', 100.0, 0.0]]
+    holdings = pd.DataFrame(holdings, columns=['Type', 'USD', 'Shares'])
+    zeros = [['SMA', 0.0], ['WMA', 0.0], ['EMA', 0.0]]
+    # tradeDates = pd.DataFrame(zeros)
+    # originalPrice = dataParsed.iloc[0, 0]
+    # print(originalPrice)
 
     print('\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[len(dataParsed)-1])
     for day in dataParsed.index:
@@ -24,37 +27,51 @@ if dataSheet[len(dataSheet)-7:len(dataSheet)-4] == 'SMA':
         SMA1 = dataParsed.loc[day, dataParsed.columns[1]]
         SMA2 = dataParsed.loc[day, dataParsed.columns[2]]
         SMA3 = dataParsed.loc[day, dataParsed.columns[3]]
-        lastPrice = dataParsed.loc[day, dataParsed.columns[0]]
+        WMA1 = dataParsed.loc[day, dataParsed.columns[4]]
+        EMA1 = dataParsed.loc[day, dataParsed.columns[5]]
 
-        if math.isnan(SMA1) or math.isnan(SMA2) or math.isnan(SMA3):
-            print('Not enough data to trade')
-        else:
-            if SMA1 > SMA2 and SMA1 > SMA3 and USD > 0.0:
-                print('Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                Crypto = USD/lastPrice
-                USD = 0.0
-                tradeDates.append(day)
-            elif SMA1 < SMA2 or SMA1 < SMA3:
-                if Crypto > 0.0:
-                    print('Selling Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                    USD = lastPrice*Crypto
-                    Crypto = 0.0
-                    tradeDates.append(day)
+        differentAls = [SMA1, WMA1, EMA1]
+        indexNum = 0
+
+        lastPrice = dataParsed.loc[day, dataParsed.columns[0]]
+        for Als in differentAls:
+            if Als == SMA1:
+                indexNum = 0
+            elif Als == WMA1:
+                indexNum = 1
+            elif Als == EMA1:
+                indexNum = 2
+            if math.isnan(Als) or math.isnan(SMA2) or math.isnan(SMA3):
+                print('Not enough data to trade with.')
+            else:
+                if Als > SMA2 and Als > SMA3 and holdings.loc[indexNum, 'USD'] > 0.0:
+                    print('Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                    holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD']/lastPrice
+                    holdings.loc[indexNum, 'USD'] = 0.0
+                    # tradeDates.append(day)
+                elif Als < SMA2 or SMA1 < SMA3:
+                    if holdings.loc[indexNum, 'Shares'] > 0.0:
+                        print('Selling Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[indexNum, 'USD'] = lastPrice*holdings.loc[indexNum, 'Shares']
+                        Crypto = 0.0
+                        # tradeDates.append(day)
+                    else:
+                        print('Holdings optimal, no buying or selling.')
                 else:
                     print('Holdings optimal, no buying or selling.')
-            else:
-                print('Holdings optimal, no buying or selling.')
 
-        print('Price: $' + str(lastPrice))
-        print('USD holdings: ' + str(USD))
-        print('Crypto/Stock holdings: ' + str(Crypto))
+            print('Price: $' + str(lastPrice))
+            print('USD holdings: ' + str(holdings.loc[indexNum, 'USD']))
+            print('Crypto/Stock holdings: ' + str(holdings.loc[indexNum, 'Shares']))
         dayNum = dayNum + 1
 
     print('\nDone!')
-    print('Bot placed trades on these days:')
-    print(tradeDates)
-    if USD > 0.0:
-        print('Final value of portfolio ' + str(round(USD)) + '% of original with algo')
-    else:
-        print('Final value of portfolio ' + str(round(lastPrice*Crypto)) + '% of original with algo')
-    print('If no algo was implemented portfolio would be ' + str((lastPrice/originalPrice)*100) + '% of original')
+    # print('Bot placed trades on these days:')
+    # print(tradeDates)
+    for holdingsIndex in holdings.index:
+        print('\nFor alg of ' + holdings.loc[holdingsIndex, 'Type'])
+        if holdings.loc[holdingsIndex, 'USD'] > 0.0:
+            print('Final value of portfolio ' + str(holdings.loc[holdingsIndex, 'USD']) + '% of original with ' + holdings.loc[holdingsIndex, 'Type'] + ' algo')
+        else:
+            print('Final value of portfolio ' + str((holdings.loc[holdingsIndex, 'Shares']*lastPrice)) + '% of original with algo')
+    print('\nIf no algo was implemented portfolio would be ' + str((lastPrice/originalPrice)*100) + '% of original')

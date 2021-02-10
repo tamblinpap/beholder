@@ -9,7 +9,7 @@ print('This is the data analysis script.')
 print('Provide link to csv file: ', end='')
 dataFile = input()
 
-#makes the data frame
+# makes the data frame
 try:
     dataParsed = pd.read_csv(dataFile, index_col='Date')
 except:
@@ -49,27 +49,32 @@ smaFirst = closePrice.rolling(window=tempSmaNum1).mean()
 smaSecond = closePrice.rolling(window=tempSmaNum2).mean()
 smaThird = closePrice.rolling(window=tempSmaNum3).mean()
 
+sma10 = closePrice.rolling(window=10).mean()
 # WMA creation
 weights = np.arange(1, 11)
 wma10 = closePrice.rolling(10).apply(lambda prices: np.dot(prices, weights)/weights.sum(), raw=True)
 # print(wma10.head(20))
 
-# EMA creation
+# EMA
+modPrice = closePrice.copy()
+modPrice.iloc[0:10] = sma10[0:10]
+ema10 = modPrice.ewm(span=10, adjust=False).mean()
 
-#chart style
+# chart style
 plt.style.use('fivethirtyeight')
-#chart size
+# chart size
 plt.figure(figsize=(12, 6))
 
-#plotting price and SMA line in plt
+# plotting price and SMA line in plt
 plt.plot(closePrice, label='Adj Close', linewidth=2)
 plt.plot(smaFirst, label=str(tempSmaNum1) + ' day rolling SMA', linewidth=1)
 plt.plot(smaSecond, label=str(tempSmaNum2) + ' day rolling SMA', linewidth=2)
 plt.plot(smaThird, label=str(tempSmaNum3) + ' day rolling SMA', linewidth=3)
 plt.plot(wma10, label='10  day rolling WMA', linewidth=2)
+plt.plot(ema10, label='10 day rolling EMA', linewidth=1)
 
 
-#adds title and labels on the axes, making legend visible
+# adds title and labels on the axes, making legend visible
 plt.xlabel('Date')
 plt.ylabel('Adjusted closing price ($)')
 plt.title('Price with Simple Moving Average')
@@ -83,10 +88,11 @@ SMAPrice_df = pd.DataFrame({
     'SMA ' + str(tempSmaNum1): smaFirst,
     'SMA ' + str(tempSmaNum2): smaSecond,
     'SMA ' + str(tempSmaNum3): smaThird,
-    'WMA10': wma10
+    'WMA10': np.round(wma10, decimals=3),
+    'EMA10': np.round(ema10, decimals=3)
 })
 
 #
 
-#saves data as csv file with correct name
-SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_SMA.csv')
+# saves data as csv file with correct name
+SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_MA.csv')
