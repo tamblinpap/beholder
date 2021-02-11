@@ -21,7 +21,7 @@ if dataSheet[len(dataSheet)-6:len(dataSheet)-4] == 'MA':
     # originalPrice = dataParsed.iloc[0, 0]
     # print(originalPrice)
 
-    print('\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[len(dataParsed)-1])
+    print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[len(dataParsed)-1])
     for day in dataParsed.index:
         print('\nDay: ' + str(dayNum) + ' (' + day + ')')
         SMA1 = dataParsed.loc[day, dataParsed.columns[1]]
@@ -53,7 +53,7 @@ if dataSheet[len(dataSheet)-6:len(dataSheet)-4] == 'MA':
                     if holdings.loc[indexNum, 'Shares'] > 0.0:
                         print('Selling Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
                         holdings.loc[indexNum, 'USD'] = lastPrice*holdings.loc[indexNum, 'Shares']
-                        Crypto = 0.0
+                        holdings.loc[indexNum, 'Shares'] = 0.0
                         # tradeDates.append(day)
                     else:
                         print('Holdings optimal, no buying or selling.')
@@ -62,7 +62,7 @@ if dataSheet[len(dataSheet)-6:len(dataSheet)-4] == 'MA':
 
             print('Price: $' + str(lastPrice))
             print('USD holdings: ' + str(holdings.loc[indexNum, 'USD']))
-            print('Crypto/Stock holdings: ' + str(holdings.loc[indexNum, 'Shares']))
+            print('Crypto/Stock holdings: ' + str(holdings.loc[indexNum, 'Shares']) + '\n')
         dayNum = dayNum + 1
 
     print('\nDone!')
@@ -71,7 +71,7 @@ if dataSheet[len(dataSheet)-6:len(dataSheet)-4] == 'MA':
     for holdingsIndex in holdings.index:
         print('\nFor alg of ' + holdings.loc[holdingsIndex, 'Type'])
         if holdings.loc[holdingsIndex, 'USD'] > 0.0:
-            print('Final value of portfolio ' + str(holdings.loc[holdingsIndex, 'USD']) + '% of original with ' + holdings.loc[holdingsIndex, 'Type'] + ' algo')
+            print('Final value of portfolio ' + str(round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' + holdings.loc[holdingsIndex, 'Type'] + ' algo')
         else:
-            print('Final value of portfolio ' + str((holdings.loc[holdingsIndex, 'Shares']*lastPrice)) + '% of original with algo')
-    print('\nIf no algo was implemented portfolio would be ' + str((lastPrice/originalPrice)*100) + '% of original')
+            print('Final value of portfolio ' + str(round(holdings.loc[holdingsIndex, 'Shares']*lastPrice)) + '% of original with algo')
+    print('\nIf no algo was implemented portfolio would be ' + str(round((lastPrice/originalPrice)*100)) + '% of original')

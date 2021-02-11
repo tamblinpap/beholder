@@ -9,10 +9,14 @@ tickerCode = input()
 
 stock = yf.download(tickers=tickerCode, period='MAX')
 if len(stock) > 0:
-    print('Import Successful')
+    print('Found stock data for ' + tickerCode)
+    stock.to_csv('Data/' + tickerCode + '_stats.csv')
 else:
-    print("\nNot a stock, trying crypto...")
-    stock = yf.download(tickers=tickerCode + "-USD", period='MAX')
-    print('Import Successful')
+    print('No stock data found for ' + tickerCode + '.  Trying crypto...')
+stock = yf.download(tickers=tickerCode + "-USD", period='MAX')
+if len(stock) > 0:
+    print('Found crypto data for ' + tickerCode + '-USD')
+    stock.to_csv('Data/' + tickerCode + '-USD_stats.csv')
+else:
+    print('No crypto data was found for ' + tickerCode + '-USD.')
 
-stock.to_csv('Data/' + tickerCode + '_stats.csv')

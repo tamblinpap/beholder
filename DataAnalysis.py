@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-isCrypto = False
-
 print('This is the data analysis script.')
 print('Provide link to csv file: ', end='')
 dataFile = input()
@@ -28,7 +26,6 @@ try:
     closePrice = dataParsed['Adj Close']
 except:
     closePrice = dataParsed['close']
-    isCrypto = True
 
 # converts the date strings in the index into pandas datetime format
 closePrice.index = pd.to_datetime(closePrice.index)
