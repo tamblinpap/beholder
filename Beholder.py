@@ -342,7 +342,7 @@ def ModeActualTrade():
         print("I highly recommend using paper mode until you are familiar with Beholder and it's commands")
         print('-ls prints your account info and refreshes tracked tickers.')
         print('The command "watch" lets Beholder watch your portfolio and make trades.')
-        print('Checking for WebullLogin.txt...')
+        print('Checking for WebullLogin.txt... ')
         try:
             loginText = open('Info/WebullLogin.txt', 'r')
             loginInfo = loginText.readlines()
