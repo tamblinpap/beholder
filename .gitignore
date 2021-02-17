@@ -1,5 +1,5 @@
 venv/
 venv(win)/
 Info/WebullLogin.txt
-Paper/Tickers.txt
-Normal/Tickers.txt
+Info/Paper/Tickers.txt
+Info/Normal/Tickers.txt
