@@ -52,7 +52,7 @@ def PrintAccountInfo(accountInfo):
             elif i['assetType'] == 'crypto':
                 print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' ' + i['ticker']['symbol'] + ' at $' + i['marketValue'])
     if accountInfo['openOrderSize'] > 0:
-        print('Open Orders:')
+        print('Open Orders: ')
         for i in accountInfo['openOrders']:
             print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
     else:
