@@ -79,6 +79,7 @@ def AlgoTester(stockCSV):
         print('File name ' + stockCSV + ' does not exist in the Data folder, make sure you included .csv at the end.')
         return
     print('File ' + stockCSV + ' found and read.')
+
     # this statement makes sure data sheet rows are in the right order
     if pd.to_datetime(dataParsed.index[0]) > pd.to_datetime(dataParsed.index[len(dataParsed) - 1]):
         newTemp = pd.DataFrame(dataParsed.iloc[::-1])
@@ -92,7 +93,7 @@ def AlgoTester(stockCSV):
     # converts the date strings in the index into pandas datetime format
     closePrice.index = pd.to_datetime(closePrice.index)
 
-    # Creating the SMA's, WMA, and EMA
+    # Creating the SMA, WMA, and EMA
     tempSmaNum1 = 10
     tempSmaNum2 = 25
     tempSmaNum3 = 100
@@ -186,14 +187,23 @@ def AlgoTester(stockCSV):
     print('\nDone!')
     # print('Bot placed trades on these days:')
     # print(tradeDates)
+    bestAlgo = ''
+    bestAlgonum = 0.0
     for holdingsIndex in holdings.index:
         print('\nFor alg of ' + holdings.loc[holdingsIndex, 'Type'])
         if holdings.loc[holdingsIndex, 'USD'] > 0.0:
             print('Final value of portfolio ' + str(round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' +
                   holdings.loc[holdingsIndex, 'Type'] + ' algo')
+            if holdings.loc[holdingsIndex, 'USD'] > bestAlgonum:
+                bestAlgonum = holdings.loc[holdingsIndex, 'USD']
+                bestAlgo = holdings.loc[holdingsIndex, 'Type']
         else:
             print('Final value of portfolio ' + str(
                 round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)) + '% of original with algo')
+            if round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice) > bestAlgonum:
+                bestAlgonum = round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)
+                bestAlgo = holdings.loc[holdingsIndex, 'Type']
+    print('\nBest algo to use on this portfolio is ' + bestAlgo)
     print('\nIf no algo was implemented portfolio would be ' + str(
         round((lastPrice / originalPrice) * 100)) + '% of original\n')
     plt.show()
