@@ -4,7 +4,6 @@
 # This bot and supplementary explanatory .py scripts where done by Tamblin Papendorp
 
 import sys
-import urwid
 import os
 import pandas as pd
 import numpy as np
@@ -14,14 +13,47 @@ import math
 from datetime import datetime
 import datetime
 from pycoingecko import CoinGeckoAPI
+from webull import webull
+from webull import paper_webull
 
 cg = CoinGeckoAPI()
+pwb = paper_webull()
+wb = webull()
 userInput = ''
 currentMode = ''
 
 
 def SaveAsCSV(dataFrame):
     dataFrame.to_csv('Data/' + dataFrame + '.csv')
+
+
+def PrintAccountInfo(accountInfo):
+    print('\n\nACCOUNT INFO')
+    try:
+        print('Account type: ' + accountInfo['accounts'][0]['paperName'])
+        isPaper = True
+    except:
+        print('Account type: Real ' + accountInfo['currency'])
+        isPaper = False
+    print('Total Account Value: ' + accountInfo['netLiquidation'])
+    print('-(' + str(round(float(accountInfo['accountMembers'][1]['value'])/float(accountInfo['netLiquidation'])*100, 1)) + '%) Money in cash: ' + accountInfo['accountMembers'][1]['value'])
+    print('-(' + str(round(float(accountInfo['accountMembers'][0]['value'])/float(accountInfo['netLiquidation'])*100, 1)) + '%) Money in holdings: ' + accountInfo['accountMembers'][0]['value'])
+    if isPaper:
+        for i in accountInfo['positions']:
+            print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
+    else:
+        for i in accountInfo['positions']:
+            if i['assetType'] == 'stock':
+                print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
+            elif i['assetType'] == 'crypto':
+                print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' ' + i['ticker']['symbol'] + ' at $' + i['marketValue'])
+    if accountInfo['openOrderSize'] > 0:
+        print('Open Orders:')
+        for i in accountInfo['openOrders']:
+            print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+    else:
+        print('No Open Orders.')
+    print('\n')
 
 
 def ParseUserInput(inputStr):
@@ -57,6 +89,8 @@ def ParseUserInput(inputStr):
             return
         elif inputStr == 'return' or inputStr == 'menu':
             return
+        elif inputStr == '-ls':
+            PrintAccountInfo(pwb.get_account())
     else:
         print('Not a valid command.')
 
@@ -237,10 +271,30 @@ def ModeTest():
 def ModePaperTrade():
     global currentMode
     global userInput
+    global pwb
     if currentMode != 'paper':
-        print('Launching in paper trade mode...')
+        print('Launching in paper trade mode...\n')
         print('Paper mode is a simulated trading mode (that works only with stocks and not crypto) run through Webull.')
         print('Though this mode does not trade with real money, it uses the same algo as Actual Trade mode.')
+        print('Checking for WebullLogin.txt...')
+        try:
+            loginText = open('Info/WebullLogin.txt', 'r')
+            loginInfo = loginText.readlines()
+            print('WebullLogin.txt found!  Attempting to login...')
+            pwb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+            paperAccountInfo = pwb.get_account()
+            print('Login Successful!')
+            PrintAccountInfo(paperAccountInfo)
+        except:
+            loginInfo = ['', '']
+            print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
+            loginInfo[0] = input() + '\n'
+            print('Now enter password manually: ', end='')
+            loginInfo[1] = input()
+            pwb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+            paperAccountInfo = pwb.get_account()
+            print('Login Successful!\n')
+            PrintAccountInfo(paperAccountInfo)
     currentMode = 'paper'
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
