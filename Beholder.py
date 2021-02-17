@@ -28,6 +28,8 @@ def SaveAsCSV(dataFrame):
 
 
 def PrintAccountInfo(accountInfo):
+    # This function prints the data from a webull account in readable way and saves the tickers for the account
+    tickerList = []*0
     print('\n\nACCOUNT INFO')
     try:
         print('Account type: ' + accountInfo['accounts'][0]['paperName'])
@@ -40,9 +42,11 @@ def PrintAccountInfo(accountInfo):
     print('-(' + str(round(float(accountInfo['accountMembers'][0]['value'])/float(accountInfo['netLiquidation'])*100, 1)) + '%) Money in holdings: ' + accountInfo['accountMembers'][0]['value'])
     if isPaper:
         for i in accountInfo['positions']:
+            tickerList.append(i['ticker']['symbol'])
             print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
     else:
         for i in accountInfo['positions']:
+            tickerList.append(i['ticker']['symbol'])
             if i['assetType'] == 'stock':
                 print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
             elif i['assetType'] == 'crypto':
@@ -54,6 +58,12 @@ def PrintAccountInfo(accountInfo):
     else:
         print('No Open Orders.')
     print('\n')
+    if isPaper:
+        with open("Info/Paper/Tickers.txt", "w") as output:
+            output.write(str(tickerList))
+    else:
+        with open("Info/Normal/Tickers.txt", "w") as output:
+            output.write(str(tickerList))
 
 
 def ParseUserInput(inputStr):
@@ -65,7 +75,7 @@ def ParseUserInput(inputStr):
             ModeTest()
         elif modeInput == 'Paper' or modeInput == 'paper':
             ModePaperTrade()
-        elif modeInput == 'ActualTrade':
+        elif modeInput == 'Normal' or modeInput == 'normal':
             ModeActualTrade()
         else:
             print(modeInput + ' is not a valid mode, check the readme for help.')
@@ -89,8 +99,15 @@ def ParseUserInput(inputStr):
             return
         elif inputStr == 'return' or inputStr == 'menu':
             return
-        elif inputStr == '-ls':
+        elif inputStr[0:3] == '-ls':
             PrintAccountInfo(pwb.get_account())
+    elif currentMode == 'normal':
+        if inputStr == 'watch':
+            return
+        elif inputStr == 'return' or inputStr == 'menu':
+            return
+        elif inputStr[0:3] == '-ls':
+            PrintAccountInfo(wb.get_account())
     else:
         print('Not a valid command.')
 
@@ -275,7 +292,9 @@ def ModePaperTrade():
     if currentMode != 'paper':
         print('Launching in paper trade mode...\n')
         print('Paper mode is a simulated trading mode (that works only with stocks and not crypto) run through Webull.')
-        print('Though this mode does not trade with real money, it uses the same algo as Actual Trade mode.')
+        print('Though this mode does not trade with real money, it uses the same algo as Normal Trade mode.')
+        print('-ls prints your account info and refreshes tracked tickers.')
+        print('The command "watch" lets Beholder watch your portfolio and make trades.')
         print('Checking for WebullLogin.txt...')
         try:
             loginText = open('Info/WebullLogin.txt', 'r')
@@ -313,7 +332,50 @@ def ModePaperTrade():
 
 
 def ModeActualTrade():
-    print('Launching in actual trade mode...')
+    global currentMode
+    global userInput
+    global wb
+    if currentMode != 'normal':
+        print('Launching in actual trade mode...')
+        print('WARNING!!! THIS MODE DEALS IN REAL MONEY! THE DEVELOPER IS NOT A FINANCIAL ADVISOR! USE AT OWN RISK!')
+        print('This mode functions almost identically to Paper mode (with same commands) except this mode allows the trading of Crypto Currency.')
+        print("I highly recommend using paper mode until you are familiar with Beholder and it's commands")
+        print('-ls prints your account info and refreshes tracked tickers.')
+        print('The command "watch" lets Beholder watch your portfolio and make trades.')
+        print('Checking for WebullLogin.txt...')
+        try:
+            loginText = open('Info/WebullLogin.txt', 'r')
+            loginInfo = loginText.readlines()
+            print('WebullLogin.txt found!  Attempting to login...')
+            wb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+            NormalAccountInfo = wb.get_account()
+            print('Login Successful!')
+            PrintAccountInfo(NormalAccountInfo)
+        except:
+            loginInfo = ['', '']
+            print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
+            loginInfo[0] = input() + '\n'
+            print('Now enter password manually: ', end='')
+            loginInfo[1] = input()
+            wb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+            NormalAccountInfo = wb.get_account()
+            print('Login Successful!\n')
+            PrintAccountInfo(NormalAccountInfo)
+    currentMode = 'normal'
+    while userInput != 'return' and userInput != 'exit':
+        if userInput == 'watch':
+            try:
+                print('Beholder is watching...')
+                print('Press Ctrl^C to stop him...')
+                while True:
+                    x = 0
+            except:
+                print('Closing his eyes...')
+        print('BeholderCMD/NormalTrading: ', end='')
+        userInput = input()
+        ParseUserInput(userInput)
+    print('Warning! Exiting Normal trading mode.  This will stop Beholder from market watching until resumed...')
+    currentMode = 'main'
 
 
 # Starting user interaction

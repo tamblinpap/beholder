@@ -1,0 +1,1 @@
+['GNW', 'SPY', 'BTCUSD', 'GE', 'PLUG', 'CHWY', 'ETHUSD']
