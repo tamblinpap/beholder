@@ -4,6 +4,7 @@
 # This bot and supplementary explanatory .py scripts where done by Tamblin Papendorp
 
 import sys
+import urwid
 import os
 import pandas as pd
 import numpy as np
@@ -26,18 +27,18 @@ def SaveAsCSV(dataFrame):
 def ParseUserInput(inputStr):
     if inputStr == 'exit':
         return
-    elif inputStr[0:2] == '-m':
+    elif inputStr[0:2] == '-m' and currentMode == 'menu':
         modeInput = inputStr[3:len(inputStr)]
         if modeInput == 'Test' or modeInput == 'test':
             ModeTest()
-        elif modeInput == 'PaperTrade':
+        elif modeInput == 'Paper' or modeInput == 'paper':
             ModePaperTrade()
         elif modeInput == 'ActualTrade':
             ModeActualTrade()
         else:
             print(modeInput + ' is not a valid mode, check the readme for help.')
     elif currentMode == 'test':
-        if inputStr == 'menu':
+        if inputStr == 'menu' or inputStr == 'return':
             return
         elif inputStr[0:2] == '-g':
             GetData(inputStr[3:len(inputStr)])
@@ -51,6 +52,11 @@ def ParseUserInput(inputStr):
             AlgoTester(inputStr[3:len(inputStr)])
         else:
             print('Not a valid command. Refer to readme on how to use test mode. type return to go back to menu')
+    elif currentMode == 'paper':
+        if inputStr == 'watch':
+            return
+        elif inputStr == 'return' or inputStr == 'menu':
+            return
     else:
         print('Not a valid command.')
 
@@ -229,7 +235,27 @@ def ModeTest():
 
 
 def ModePaperTrade():
-    print('Launching in paper trade mode...')
+    global currentMode
+    global userInput
+    if currentMode != 'paper':
+        print('Launching in paper trade mode...')
+        print('Paper mode is a simulated trading mode (that works only with stocks and not crypto) run through Webull.')
+        print('Though this mode does not trade with real money, it uses the same algo as Actual Trade mode.')
+    currentMode = 'paper'
+    while userInput != 'return' and userInput != 'exit':
+        if userInput == 'watch':
+            try:
+                print('Beholder is watching...')
+                print('Press Ctrl^C to stop him...')
+                while True:
+                    x = 0
+            except:
+                print('Closing his eyes...')
+        print('BeholderCMD/PaperTrading: ', end='')
+        userInput = input()
+        ParseUserInput(userInput)
+    print('Warning! Exiting paper trading mode.  This will stop Beholder from market watching until resumed...')
+    currentMode = 'main'
 
 
 def ModeActualTrade():
@@ -249,10 +275,10 @@ if currentMode == '':
     print('Beholder Bot was created by Tamblin Papendorp')
     print('\nWhat mode to you want to launch Beholder in?')
 
-currentMode = 'menu'
 
 while userInput != 'exit':
     print('BeholderCMD: ', end='')
+    currentMode = 'menu'
     userInput = input()
     ParseUserInput(userInput)
 
