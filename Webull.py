@@ -54,7 +54,11 @@ def PrintAccountInfo(accountInfo):
     if accountInfo['openOrderSize'] > 0:
         print('Open Orders:')
         for i in accountInfo['openOrders']:
-            print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+            try:
+                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+            except:
+                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for market price')
+
     else:
         print('No Open Orders.')
 
@@ -78,6 +82,11 @@ if tradingMode == 'paper':
         print('Login unsuccessful.  Check login info.')
         sys.exit()
     PrintAccountInfo(paperAccountInfo)
+    pwb.get_account_id()
+    pwb.get_trade_token()
+    pwb.place_order(stock='PLUG', action='SELL', quant=1, orderType='MKT', enforce='DAY')
+    PrintAccountInfo(pwb.get_account())
+
 
 elif tradingMode == 'normal':
     print('Starting trading with real money...')
@@ -105,6 +114,12 @@ while userInput != 'exit':
     if tradingMode == 'paper':
         print('\nWebull Paper Trading: ', end='')
         userInput = input()
+        if userInput == 'trade':
+            print('What is the ticker for the stock you want to buy: ', end='')
+            ticker = input()
+            print('How many to do you to buy at market price of ' + str(pwb.get_ticker(ticker)) + ': ')
+            amount = input()
+            PrintAccountInfo(pwb.get_account())
     elif tradingMode == 'normal':
         print('\nWebull Real Trading: ', end='')
         userInput = input()

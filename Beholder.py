@@ -54,7 +54,10 @@ def PrintAccountInfo(accountInfo):
     if accountInfo['openOrderSize'] > 0:
         print('Open Orders: ')
         for i in accountInfo['openOrders']:
-            print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+            try:
+                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+            except:
+                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for market price')
     else:
         print('No Open Orders.')
     print('\n')
