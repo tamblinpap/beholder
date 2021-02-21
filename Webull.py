@@ -84,7 +84,7 @@ if tradingMode == 'paper':
     PrintAccountInfo(paperAccountInfo)
     pwb.get_account_id()
     pwb.get_trade_token()
-    pwb.place_order(stock='PLUG', action='SELL', quant=1, orderType='MKT', enforce='DAY')
+    pwb.place_order(stock='MSFT', action='BUY', quant=1, orderType='MKT', enforce='DAY')
     PrintAccountInfo(pwb.get_account())
 
 
