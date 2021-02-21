@@ -202,7 +202,7 @@ def AlgoTester(stockCSV, isQuiet):
 
         # Creating the SMA, WMA, and EMA
         tempSmaNum1 = 10
-        tempSmaNum2 = 25
+        tempSmaNum2 = 20
         tempSmaNum3 = 100
 
         smaFirst = closePrice.rolling(window=tempSmaNum1).mean()
