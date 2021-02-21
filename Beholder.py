@@ -136,12 +136,16 @@ def GetDataList(accountType):
     return tickerList
 
 
-def GetData(tickerCode, isQuiet):
+def GetData(tickerC, isQuiet):
     # gets ticker csv files and deletes old ones
-    if tickerCode[len(tickerCode)-3:len(tickerCode)] == 'USD' and tickerCode[len(tickerCode)-4:len(tickerCode)-3] != '-':
-        tickerCode = tickerCode[0:len(tickerCode)-3]
+    tickerCode = tickerC
     if tickerCode == '' or tickerCode == '\n' or tickerCode == ' ':
         return
+    if tickerCode[len(tickerCode) - 1:len(tickerCode)] == '\n':
+        tickerCode = tickerCode[0:len(tickerCode)-1]
+    if tickerCode[len(tickerCode)-3:len(tickerCode)] == 'USD' and tickerCode[len(tickerCode)-4:len(tickerCode)-3] != '-':
+        tickerCode = tickerCode[0:len(tickerCode)-3]
+        print(tickerCode)
     if not isQuiet:
         print('Attempting to get historical data for ' + tickerCode + '...')
     stock = yf.download(tickers=tickerCode, period='MAX')
@@ -207,7 +211,7 @@ def AlgoTester(stockCSV, isQuiet):
         weights = np.arange(1, tempSmaNum1 + 1)
         wma = closePrice.rolling(tempSmaNum1).apply(lambda prices: np.dot(prices, weights) / weights.sum(), raw=True)
         modPrice = closePrice.copy()
-        modPrice.iloc[0:tempSmaNum1] = smaFirst[0:10]
+        modPrice.iloc[0:tempSmaNum1] = smaFirst[0:tempSmaNum1]
         ema = modPrice.ewm(span=tempSmaNum1, adjust=False).mean()
 
         # Graphing the stats
@@ -263,8 +267,8 @@ def AlgoTester(stockCSV, isQuiet):
             lastMAs.loc['EMA1', 'Value'] = EMA1
             differentAls = [SMA1, WMA1, EMA1]
             indexNum = 0
-
             lastPrice = dataParsed.loc[day, dataParsed.columns[0]]
+
             for Als in differentAls:
                 if Als == SMA1:
                     indexNum = 0
@@ -333,7 +337,6 @@ def AlgoTester(stockCSV, isQuiet):
         print('Preparing to test algorithms on list of tickers...')
         for tickerCode in stockCSV:
             AlgoTester(tickerCode, True)
-
 
 
 def ModeTest():
@@ -455,8 +458,7 @@ if currentMode == '':
         print(element)
     print('Welcome to the "Beholder" bot!\n')
     print('Please refer to the README.md file for operation instructions')
-    print(
-        '\nThe creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
+    print('\nThe creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
     print('The creator of this bot is not a financial advisor.  Use at your own risk')
     print('Beholder Bot was created by Tamblin Papendorp')
     print('\nWhat mode to you want to launch Beholder in?')

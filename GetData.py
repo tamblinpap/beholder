@@ -6,6 +6,9 @@ from datetime import datetime
 cg = CoinGeckoAPI()
 print('Type Stock/BTC symbol for information: ', end='')
 tickerCode = input()
+ticker = yf.Ticker(tickerCode)
+print(ticker.recommendations)
+print(len(ticker.recommendations))
 
 stock = yf.download(tickers=tickerCode, period='MAX')
 if len(stock) > 0:
