@@ -179,12 +179,24 @@ def GetData(tickerC, isQuiet):
 
 def AlgoTester(stockCSV, isQuiet):
     if type(stockCSV) == type('string'):
-        print('Preparing to test algorithms on ' + stockCSV[0:len(stockCSV) - 10] + '...')
+        print('Preparing to test algorithms on ' + stockCSV + '...')
+        dataParsed = ''
         try:
             dataParsed = pd.read_csv('Data/' + stockCSV, index_col='Date')
         except:
-            print('File name ' + stockCSV + ' does not exist in the Data folder, make sure you included .csv at the end.')
-            return
+            try:
+                if stockCSV[len(stockCSV) - 1:len(stockCSV)] == '\n':
+                    tickerCode = stockCSV[0:len(stockCSV) - 1]
+                if stockCSV[len(stockCSV) - 3:len(stockCSV)] == 'USD' and stockCSV[len(stockCSV) - 4:len(
+                        stockCSV) - 3] != '-':
+                    tickerCode = stockCSV[0:len(stockCSV) - 3]
+                for file in os.listdir('Data'):
+                    if file[len(file) - 9:len(file)] == 'stats.csv':
+                        if file[0:len(stockCSV)] == stockCSV and file[len(stockCSV):len(stockCSV) + 1] == '-':
+                            dataParsed = pd.read_csv('Data/' + file, index_col='Date')
+            except:
+                print('Data file for ' + stockCSV + ' does not exist in the Data folder.')
+                return
         if not isQuiet:
             print('File ' + stockCSV + ' found and read.')
 
