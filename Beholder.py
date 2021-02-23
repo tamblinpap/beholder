@@ -3,6 +3,7 @@
 #
 # This bot and supplementary explanatory .py scripts where done by Tamblin Papendorp
 
+# lib imports
 import sys
 import os
 import pandas as pd
