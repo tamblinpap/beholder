@@ -212,47 +212,80 @@ def AlgoTester(stockCSV, isQuiet):
         # converts the date strings in the index into pandas datetime format
         closePrice.index = pd.to_datetime(closePrice.index)
 
-        # Creating the SMA, WMA, and EMA
-        tempSmaNum1 = 10
-        tempSmaNum2 = 20
-        tempSmaNum3 = 100
+        # Creating the RSI
+        RSI_WINDOW = 14
 
-        smaFirst = closePrice.rolling(window=tempSmaNum1).mean()
-        smaSecond = closePrice.rolling(window=tempSmaNum2).mean()
-        smaThird = closePrice.rolling(window=tempSmaNum3).mean()
-        weights = np.arange(1, tempSmaNum1 + 1)
-        wma = closePrice.rolling(tempSmaNum1).apply(lambda prices: np.dot(prices, weights) / weights.sum(), raw=True)
+        percentGains = []
+        percentLosses = []
+        lastPrice = 0.0
+        for day in closePrice.index:
+            currentPrice = closePrice[day]
+            if lastPrice == 0.0:
+                lastPrice = currentPrice
+                percentGains.append(0.0)
+                percentLosses.append(0.0)
+                continue
+            if currentPrice/lastPrice < 1.0:
+                percentGains.append(0.0)
+                percentLosses.append(round((1-(currentPrice/lastPrice))*100, 2))
+            elif currentPrice/lastPrice > 1.0:
+                percentLosses.append(0.0)
+                percentGains.append(round(((currentPrice/lastPrice)-1)*100, 2))
+            else:
+                percentGains.append(0.0)
+                percentLosses.append(0.0)
+            lastPrice = currentPrice
+        RSIPrice_df = pd.DataFrame({
+            'Price': closePrice,
+            'Gains': percentGains,
+            'Losses': percentLosses,
+        })
+        rolling_gain = RSIPrice_df['Gains'].rolling(RSI_WINDOW).mean()
+        rolling_loss = RSIPrice_df['Losses'].rolling(RSI_WINDOW).mean()
+        RSIPrice_df['RSI'] = 100-(100/((rolling_gain/rolling_loss)+1))
+
+        # Creating the SMA, WMA, and EMA
+        tempMANum1 = 10
+        tempMANum2 = 20
+        tempMANum3 = 100
+
+        smaFirst = closePrice.rolling(window=tempMANum1).mean()
+        smaSecond = closePrice.rolling(window=tempMANum2).mean()
+        smaThird = closePrice.rolling(window=tempMANum3).mean()
+        weights = np.arange(1, tempMANum1 + 1)
+        wma = closePrice.rolling(tempMANum1).apply(lambda prices: np.dot(prices, weights) / weights.sum(), raw=True)
         modPrice = closePrice.copy()
-        modPrice.iloc[0:tempSmaNum1] = smaFirst[0:tempSmaNum1]
-        ema = modPrice.ewm(span=tempSmaNum1, adjust=False).mean()
+        modPrice.iloc[0:tempMANum1] = smaFirst[0:tempMANum1]
+        ema = modPrice.ewm(span=tempMANum1, adjust=False).mean()
 
         # Graphing the stats
         plt.style.use('fivethirtyeight')
         plt.figure(figsize=(12, 6))
         plt.plot(closePrice, label='Adj Close Price', linewidth=2)
-        plt.plot(smaFirst, label=str(tempSmaNum1) + ' day rolling SMA', linewidth=1)
-        plt.plot(smaSecond, label=str(tempSmaNum2) + ' day rolling SMA', linewidth=2)
-        plt.plot(smaThird, label=str(tempSmaNum3) + ' day rolling SMA', linewidth=3)
-        plt.plot(wma, label=str(tempSmaNum1) + ' day WMA', linewidth=2)
-        plt.plot(ema, label=str(tempSmaNum1) + ' day EMA', linewidth=1)
+        plt.plot(smaFirst, label=str(tempMANum1) + ' day SMA', linewidth=1)
+        plt.plot(smaSecond, label=str(tempMANum2) + ' day SMA', linewidth=2)
+        plt.plot(smaThird, label=str(tempMANum3) + ' day SMA', linewidth=3)
+        plt.plot(wma, label=str(tempMANum1) + ' day WMA', linewidth=2)
+        plt.plot(ema, label=str(tempMANum1) + ' day EMA', linewidth=1)
         plt.xlabel('Date')
         plt.ylabel('Adjusted closing price ($USD)')
-        plt.title(stockCSV[0:len(stockCSV) - 10] + ' Price with Moving Averages')
+        plt.title(stockCSV[0:4] + ' Price with Moving Averages')
         plt.legend()
 
-        MAPrice_df = pd.DataFrame({
+        analyzedPrice_df = pd.DataFrame({
             'Adj Close': closePrice,
-            'SMA ' + str(tempSmaNum1): smaFirst,
-            'SMA ' + str(tempSmaNum2): smaSecond,
-            'SMA ' + str(tempSmaNum3): smaThird,
+            'SMA ' + str(tempMANum1): smaFirst,
+            'SMA ' + str(tempMANum2): smaSecond,
+            'SMA ' + str(tempMANum3): smaThird,
             'WMA10': np.round(wma, decimals=3),
-            'EMA10': np.round(ema, decimals=3)
+            'EMA10': np.round(ema, decimals=3),
+            'RSI': RSIPrice_df['RSI']
         })
-        MACSVName = stockCSV[0:len(stockCSV) - 4] + '_MA.csv'
-        MAPrice_df.to_csv('Data/MovingAvg/' + MACSVName)
+        AnalyzedCSVName = stockCSV[0:len(stockCSV) - 4] + '_ANALYZED.csv'
+        analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
 
         # Time to run tests
-        dataParsed = pd.read_csv('Data/MovingAvg/' + MACSVName, index_col='Date')
+        dataParsed = pd.read_csv('Data/Analyzed/' + AnalyzedCSVName, index_col='Date')
         lastPrice = 0.0
         originalPrice = dataParsed.loc[dataParsed.index[0], dataParsed.columns[0]]
         dayNum = 1

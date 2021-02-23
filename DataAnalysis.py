@@ -92,4 +92,4 @@ SMAPrice_df = pd.DataFrame({
 #
 
 # saves data as csv file with correct name
-SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_MA.csv')
+SMAPrice_df.to_csv(dataFile[0:len(dataFile)-4] + '_ANALYZED.csv')
