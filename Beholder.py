@@ -379,15 +379,20 @@ def ModePaperTrade():
             print('Login Successful!')
             PrintAccountInfo(paperAccountInfo)
         except:
-            loginInfo = ['', '']
-            print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
-            loginInfo[0] = input() + '\n'
-            print('Now enter password manually: ', end='')
-            loginInfo[1] = input()
-            pwb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
-            paperAccountInfo = pwb.get_account()
-            print('Login Successful!\n')
-            PrintAccountInfo(paperAccountInfo)
+            notLogged = True
+            while(notLogged):
+                try:
+                    loginInfo = ['', '']
+                    print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
+                    loginInfo[0] = input() + '\n'
+                    print('Now enter password manually: ', end='')
+                    loginInfo[1] = input()
+                    pwb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+                    paperAccountInfo = pwb.get_account()
+                    PrintAccountInfo(paperAccountInfo)
+                    notLogged = False
+                except:
+                    notLogged = True
     currentMode = 'paper'
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
@@ -426,15 +431,20 @@ def ModeActualTrade():
             print('Login Successful!')
             PrintAccountInfo(NormalAccountInfo)
         except:
-            loginInfo = ['', '']
-            print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
-            loginInfo[0] = input() + '\n'
-            print('Now enter password manually: ', end='')
-            loginInfo[1] = input()
-            wb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
-            NormalAccountInfo = wb.get_account()
-            print('Login Successful!\n')
-            PrintAccountInfo(NormalAccountInfo)
+            notLogged = True
+            while (notLogged):
+                try:
+                    loginInfo = ['', '']
+                    print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
+                    loginInfo[0] = input() + '\n'
+                    print('Now enter password manually: ', end='')
+                    loginInfo[1] = input()
+                    wb.login(username=loginInfo[0][0:len(loginInfo[0]) - 1], password=loginInfo[1])
+                    NormalAccountInfo = wb.get_account()
+                    PrintAccountInfo(NormalAccountInfo)
+                    notLogged = False
+                except:
+                    notLogged = True
     currentMode = 'normal'
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
