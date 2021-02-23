@@ -133,7 +133,6 @@ def GetDataList(accountType):
     for tickerCode in tickerList:
         GetData(tickerCode, False)
     # returns list of tickers
-    print(tickerList)
     return tickerList
 
 
@@ -179,20 +178,20 @@ def GetData(tickerC, isQuiet):
 
 def AlgoTester(stockCSV, isQuiet):
     if type(stockCSV) == type('string'):
+        if stockCSV[len(stockCSV) - 1:len(stockCSV)] == '\n':
+            stockCSV = stockCSV[0:len(stockCSV) - 1]
         print('Preparing to test algorithms on ' + stockCSV + '...')
-        dataParsed = ''
         try:
             dataParsed = pd.read_csv('Data/' + stockCSV, index_col='Date')
         except:
             try:
-                if stockCSV[len(stockCSV) - 1:len(stockCSV)] == '\n':
-                    tickerCode = stockCSV[0:len(stockCSV) - 1]
-                if stockCSV[len(stockCSV) - 3:len(stockCSV)] == 'USD' and stockCSV[len(stockCSV) - 4:len(
-                        stockCSV) - 3] != '-':
-                    tickerCode = stockCSV[0:len(stockCSV) - 3]
+                print('Not a csv file, looking for files with similar ticker indicators...')
+                if stockCSV[len(stockCSV) - 3:len(stockCSV)] == 'USD' and stockCSV[len(stockCSV) - 4:len(stockCSV) - 3] != '-':
+                    stockCSV = stockCSV[0:len(stockCSV) - 3] + '-' + stockCSV[len(stockCSV)-3:len(stockCSV)]
                 for file in os.listdir('Data'):
                     if file[len(file) - 9:len(file)] == 'stats.csv':
-                        if file[0:len(stockCSV)] == stockCSV and file[len(stockCSV):len(stockCSV) + 1] == '-':
+                        if file[0:len(stockCSV)] == stockCSV:
+                            print(file)
                             dataParsed = pd.read_csv('Data/' + file, index_col='Date')
             except:
                 print('Data file for ' + stockCSV + ' does not exist in the Data folder.')
