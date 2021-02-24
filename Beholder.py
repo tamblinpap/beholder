@@ -585,6 +585,11 @@ def ModeActualTrade():
     currentMode = 'main'
 
 
+# Runs ongoing
+def Watch(tradingMode):
+    print(tradingMode)
+
+
 # Starting user interaction
 if currentMode == '':
     beholderText = open('Info/Beholder.txt')
