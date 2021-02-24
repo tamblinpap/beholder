@@ -28,6 +28,7 @@ def SaveAsCSV(dataFrame):
     dataFrame.to_csv('Data/' + dataFrame + '.csv')
 
 
+# This method parses and organizes webull acount information in a readable way
 def PrintAccountInfo(accountInfo):
     # This function prints the data from a webull account in readable way and saves the tickers for the account
     tickerList = [] * 0
@@ -111,6 +112,7 @@ def Help():
     print('="-t" will run the Beholder algorithm on all account holdings')
 
 
+# This method handles the commands for all modes
 def ParseUserInput(inputStr):
     if inputStr == 'exit':
         return
@@ -163,6 +165,7 @@ def ParseUserInput(inputStr):
         print('Not a valid command.')
 
 
+# This method reads in a list of data, formats it, and then sends it through GetData()
 def GetDataList(accountType):
     # gets ticker csv files for a webull portfolio (either normal or paper)
     if accountType == 'paper':
@@ -177,6 +180,7 @@ def GetDataList(accountType):
     return tickerList
 
 
+# This method pulls csv files from the yahoo finance API and saves them as csv files
 def GetData(tickerC, isQuiet):
     # gets ticker csv files and deletes old ones
     tickerCode = tickerC
@@ -218,6 +222,7 @@ def GetData(tickerC, isQuiet):
             print('No crypto data was found for ' + tickerCode + '-USD.')
 
 
+# This method runs all the data analysis algorithms on a ticker or list of tickers
 def AlgoTester(stockCSV, isQuiet):
     if type(stockCSV) == type('string'):
         if stockCSV[len(stockCSV) - 1:len(stockCSV)] == '\n':
@@ -287,6 +292,16 @@ def AlgoTester(stockCSV, isQuiet):
         rolling_loss = RSIPrice_df['Losses'].rolling(RSI_WINDOW).mean()
         RSIPrice_df['RSI'] = 100 - (100 / ((rolling_gain / rolling_loss) + 1))
 
+        # Creating the MACD and Signal Lines
+        emaNum1 = 12
+        emaNum2 = 26
+        sigLineNum = 9
+
+        exp1 = closePrice.ewm(span=emaNum1, adjust=False).mean()
+        exp2 = closePrice.ewm(span=emaNum2, adjust=False).mean()
+        macd = exp1-exp2
+        sigLine = macd.ewm(span=sigLineNum, adjust=False).mean()
+
         # Creating the SMA, WMA, and EMA
         tempMANum1 = 10
         tempMANum2 = 20
@@ -322,7 +337,9 @@ def AlgoTester(stockCSV, isQuiet):
             'SMA ' + str(tempMANum3): smaThird,
             'WMA10': np.round(wma, decimals=3),
             'EMA10': np.round(ema, decimals=3),
-            'RSI': RSIPrice_df['RSI']
+            'RSI': RSIPrice_df['RSI'],
+            'MACD': macd,
+            str(sigLineNum) + ' DAY SIGNAL LINE': sigLine
         })
         AnalyzedCSVName = stockCSV[0:len(stockCSV)] + '_ANALYZED.csv'
         analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
@@ -432,6 +449,7 @@ def AlgoTester(stockCSV, isQuiet):
             AlgoTester(tickerCode, True)
 
 
+# Houses the framework for test mode
 def ModeTest():
     global currentMode
     global userInput
@@ -451,6 +469,7 @@ def ModeTest():
     currentMode = 'main'
 
 
+# Logs you into webull paper and houses framework for paper mode
 def ModePaperTrade():
     global currentMode
     global userInput
@@ -502,6 +521,7 @@ def ModePaperTrade():
     currentMode = 'main'
 
 
+# Logs you into webull and houses framework for normal mode
 def ModeActualTrade():
     global currentMode
     global userInput
