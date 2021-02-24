@@ -30,7 +30,7 @@ def SaveAsCSV(dataFrame):
 
 def PrintAccountInfo(accountInfo):
     # This function prints the data from a webull account in readable way and saves the tickers for the account
-    tickerList = []*0
+    tickerList = [] * 0
     print('\n\nACCOUNT INFO')
     try:
         print('Account type: ' + accountInfo['accounts'][0]['paperName'])
@@ -39,26 +39,44 @@ def PrintAccountInfo(accountInfo):
         print('Account type: Real ' + accountInfo['currency'])
         isPaper = False
     print('Total Account Value: ' + accountInfo['netLiquidation'])
-    print('-(' + str(round(float(accountInfo['accountMembers'][1]['value'])/float(accountInfo['netLiquidation'])*100, 1)) + '%) Money in cash: ' + accountInfo['accountMembers'][1]['value'])
-    print('-(' + str(round(float(accountInfo['accountMembers'][0]['value'])/float(accountInfo['netLiquidation'])*100, 1)) + '%) Money in holdings: ' + accountInfo['accountMembers'][0]['value'])
+    print('-(' + str(
+        round(float(accountInfo['accountMembers'][1]['value']) / float(accountInfo['netLiquidation']) * 100,
+              1)) + '%) Money in cash: ' + accountInfo['accountMembers'][1]['value'])
+    print('-(' + str(
+        round(float(accountInfo['accountMembers'][0]['value']) / float(accountInfo['netLiquidation']) * 100,
+              1)) + '%) Money in holdings: ' + accountInfo['accountMembers'][0]['value'])
     if isPaper:
         for i in accountInfo['positions']:
             tickerList.append(i['ticker']['symbol'])
-            print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
+            print('   >(' + str(
+                round((float(i['marketValue']) / float(accountInfo['accountMembers'][0]['value'])) * 100,
+                      1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i[
+                      'lastPrice'] + ' each')
     else:
         for i in accountInfo['positions']:
             tickerList.append(i['ticker']['symbol'])
             if i['assetType'] == 'stock':
-                print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i['lastPrice'] + ' each')
+                print('   >(' + str(
+                    round((float(i['marketValue']) / float(accountInfo['accountMembers'][0]['value'])) * 100,
+                          1)) + '%) ' + str(i['position']) + ' share(s) of ' + i['ticker']['symbol'] + ' at $' + i[
+                          'lastPrice'] + ' each')
             elif i['assetType'] == 'crypto':
-                print('   >(' + str(round((float(i['marketValue'])/float(accountInfo['accountMembers'][0]['value']))*100, 1)) + '%) ' + str(i['position']) + ' ' + i['ticker']['symbol'] + ' at $' + i['marketValue'])
+                print('   >(' + str(
+                    round((float(i['marketValue']) / float(accountInfo['accountMembers'][0]['value'])) * 100,
+                          1)) + '%) ' + str(i['position']) + ' ' + i['ticker']['symbol'] + ' at $' + i['marketValue'])
     if accountInfo['openOrderSize'] > 0:
         print('Open Orders: ')
         for i in accountInfo['openOrders']:
             try:
-                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
+                print('   >' + i['action'] + 'ING ' + str(
+                    round(float(i['totalQuantity']) - float(i['filledQuantity']))) + ' of ' + i[
+                          'totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker'][
+                          'symbol'] + ') for $' + i['lmtPrice'] + ' a share.')
             except:
-                print('   >' + i['action'] + 'ING ' + str(round(float(i['totalQuantity'])-float(i['filledQuantity']))) + ' of ' + i['totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker']['symbol'] + ') for market price')
+                print('   >' + i['action'] + 'ING ' + str(
+                    round(float(i['totalQuantity']) - float(i['filledQuantity']))) + ' of ' + i[
+                          'totalQuantity'] + ' of ' + i['ticker']['tinyName'] + '(' + i['ticker'][
+                          'symbol'] + ') for market price')
     else:
         print('No Open Orders.')
     print('\n')
@@ -72,9 +90,32 @@ def PrintAccountInfo(accountInfo):
                 output.write(ticker + '\n')
 
 
+# This method prints instructions to the user
+def Help():
+    print('\n\nBEHOLDER HELP\n')
+    print('MODE MAIN:')
+    print('="exit" closes the program')
+    print('="-m" is the pointer to enter a mode. Modes available are test, paper, and normal. Ex."-m test" ')
+    print('="menu" or "return" will return to main menu from any other mode')
+    print('MODE TEST:')
+    print('="-g" is the pointer to get ticker data. It is called with a ticker id after the pointer. Ex."-g MSFT"')
+    print('="-ls" lists all of the ticker data files available.')
+    print('="-t" is the pointer to test historical data with the Beholder algorithm. It is called with ticker id or .csv path. Ex."-t MSFT" or "-t MSFT_2021-02-23_stats.csv"')
+    print('MODE PAPER:')
+    print('This mode uses webull paper trading to simulate trading. The differences between paper and normal mode is in paper mode, crypto trading is not supported and money is simulated.')
+    print('="-ls" will reprint account info and holdings')
+    print('="-t" will run the Beholder algorithm on all account holdings')
+    print('MODE NORMAL:')
+    print('This mode connects to your webull account and uses real money and holdings.  No trades will be made without you allowing Beholder to do so.')
+    print('="-ls" will reprint account info and holdings')
+    print('="-t" will run the Beholder algorithm on all account holdings')
+
+
 def ParseUserInput(inputStr):
     if inputStr == 'exit':
         return
+    elif inputStr == '-help' or inputStr == '-h' or inputStr == 'help':
+        Help()
     elif inputStr[0:2] == '-m' and currentMode == 'menu':
         modeInput = inputStr[3:len(inputStr)]
         if modeInput == 'Test' or modeInput == 'test':
@@ -84,7 +125,7 @@ def ParseUserInput(inputStr):
         elif modeInput == 'Normal' or modeInput == 'normal':
             ModeActualTrade()
         else:
-            print(modeInput + ' is not a valid mode, check the readme for help.')
+            print(modeInput + ' is not a valid mode, check the readme or use "-help" for help.')
     elif currentMode == 'test':
         if inputStr == 'menu' or inputStr == 'return':
             return
@@ -93,7 +134,7 @@ def ParseUserInput(inputStr):
         elif inputStr[0:3] == '-ls':
             print('\nPrice data available:')
             for file in os.listdir('Data'):
-                if file[len(file)-4:len(file)] == '.csv':
+                if file[len(file) - 4:len(file)] == '.csv':
                     print(file)
             print('\n')
         elif inputStr[0:2] == '-t':
@@ -142,9 +183,10 @@ def GetData(tickerC, isQuiet):
     if tickerCode == '' or tickerCode == '\n' or tickerCode == ' ':
         return
     if tickerCode[len(tickerCode) - 1:len(tickerCode)] == '\n':
-        tickerCode = tickerCode[0:len(tickerCode)-1]
-    if tickerCode[len(tickerCode)-3:len(tickerCode)] == 'USD' and tickerCode[len(tickerCode)-4:len(tickerCode)-3] != '-':
-        tickerCode = tickerCode[0:len(tickerCode)-3]
+        tickerCode = tickerCode[0:len(tickerCode) - 1]
+    if tickerCode[len(tickerCode) - 3:len(tickerCode)] == 'USD' and tickerCode[
+                                                                    len(tickerCode) - 4:len(tickerCode) - 3] != '-':
+        tickerCode = tickerCode[0:len(tickerCode) - 3]
         print(tickerCode)
     if not isQuiet:
         print('Attempting to get historical data for ' + tickerCode + '...')
@@ -155,7 +197,7 @@ def GetData(tickerC, isQuiet):
         stockSaveName = 'Data/' + tickerCode + '_' + str(datetime.date.today()) + '_stats.csv'
         for file in os.listdir('Data'):
             if file[len(file) - 9:len(file)] == 'stats.csv':
-                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode)+1] != '-':
+                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] != '-':
                     os.remove('Data/' + file)
         stock.to_csv(stockSaveName)
     else:
@@ -168,7 +210,7 @@ def GetData(tickerC, isQuiet):
         stockSaveName = 'Data/' + tickerCode + '-USD_' + str(datetime.date.today()) + '_stats.csv'
         for file in os.listdir('Data'):
             if file[len(file) - 9:len(file)] == 'stats.csv':
-                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode)+1] == '-':
+                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] == '-':
                     os.remove('Data/' + file)
         stock.to_csv(stockSaveName)
     else:
@@ -186,8 +228,9 @@ def AlgoTester(stockCSV, isQuiet):
         except:
             try:
                 print('Not a csv file, looking for files with similar ticker indicators...')
-                if stockCSV[len(stockCSV) - 3:len(stockCSV)] == 'USD' and stockCSV[len(stockCSV) - 4:len(stockCSV) - 3] != '-':
-                    stockCSV = stockCSV[0:len(stockCSV) - 3] + '-' + stockCSV[len(stockCSV)-3:len(stockCSV)]
+                if stockCSV[len(stockCSV) - 3:len(stockCSV)] == 'USD' and stockCSV[
+                                                                          len(stockCSV) - 4:len(stockCSV) - 3] != '-':
+                    stockCSV = stockCSV[0:len(stockCSV) - 3] + '-' + stockCSV[len(stockCSV) - 3:len(stockCSV)]
                 for file in os.listdir('Data'):
                     if file[len(file) - 9:len(file)] == 'stats.csv':
                         if file[0:len(stockCSV)] == stockCSV:
@@ -225,12 +268,12 @@ def AlgoTester(stockCSV, isQuiet):
                 percentGains.append(0.0)
                 percentLosses.append(0.0)
                 continue
-            if currentPrice/lastPrice < 1.0:
+            if currentPrice / lastPrice < 1.0:
                 percentGains.append(0.0)
-                percentLosses.append(round((1-(currentPrice/lastPrice))*100, 2))
-            elif currentPrice/lastPrice > 1.0:
+                percentLosses.append(round((1 - (currentPrice / lastPrice)) * 100, 2))
+            elif currentPrice / lastPrice > 1.0:
                 percentLosses.append(0.0)
-                percentGains.append(round(((currentPrice/lastPrice)-1)*100, 2))
+                percentGains.append(round(((currentPrice / lastPrice) - 1) * 100, 2))
             else:
                 percentGains.append(0.0)
                 percentLosses.append(0.0)
@@ -242,7 +285,7 @@ def AlgoTester(stockCSV, isQuiet):
         })
         rolling_gain = RSIPrice_df['Gains'].rolling(RSI_WINDOW).mean()
         rolling_loss = RSIPrice_df['Losses'].rolling(RSI_WINDOW).mean()
-        RSIPrice_df['RSI'] = 100-(100/((rolling_gain/rolling_loss)+1))
+        RSIPrice_df['RSI'] = 100 - (100 / ((rolling_gain / rolling_loss) + 1))
 
         # Creating the SMA, WMA, and EMA
         tempMANum1 = 10
@@ -295,7 +338,8 @@ def AlgoTester(stockCSV, isQuiet):
         lastMAs = pd.DataFrame(tempData, columns=['Value'], index=['SMA2', 'SMA3', 'SMA1', 'WMA1', 'EMA1'])
 
         if not isQuiet:
-            print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[len(dataParsed) - 1])
+            print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[
+                len(dataParsed) - 1])
         for day in dataParsed.index:
             if not isQuiet:
                 print('\nDay: ' + str(dayNum) + ' (' + day + ')')
@@ -327,14 +371,16 @@ def AlgoTester(stockCSV, isQuiet):
                 else:
                     if Als > SMA2 and Als > SMA3 and holdings.loc[indexNum, 'USD'] > 0.0:
                         if not isQuiet:
-                            print('Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                            print(
+                                'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
                         holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD'] / lastPrice
                         holdings.loc[indexNum, 'USD'] = 0.0
                         # tradeDates.append(day)
                     elif Als < SMA2 or SMA1 < SMA3:
                         if holdings.loc[indexNum, 'Shares'] > 0.0:
                             if not isQuiet:
-                                print('Selling Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                                print('Selling Crypto/Stock at price of: $' + str(
+                                    dataParsed.loc[day, dataParsed.columns[0]]))
                             holdings.loc[indexNum, 'USD'] = lastPrice * holdings.loc[indexNum, 'Shares']
                             holdings.loc[indexNum, 'Shares'] = 0.0
                             # tradeDates.append(day)
@@ -358,7 +404,8 @@ def AlgoTester(stockCSV, isQuiet):
         for holdingsIndex in holdings.index:
             print('For alg of ' + holdings.loc[holdingsIndex, 'Type'])
             if holdings.loc[holdingsIndex, 'USD'] > 0.0:
-                print('Final value of portfolio ' + str(round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' +
+                print('Final value of portfolio ' + str(
+                    round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' +
                       holdings.loc[holdingsIndex, 'Type'] + ' algo')
                 if holdings.loc[holdingsIndex, 'USD'] > bestAlgonum:
                     bestAlgonum = holdings.loc[holdingsIndex, 'USD']
@@ -372,7 +419,8 @@ def AlgoTester(stockCSV, isQuiet):
         print('\nBest algo to use on this portfolio is ' + bestAlgo)
         print('\nIf no algo was implemented portfolio would be ' + str(
             round((lastPrice / originalPrice) * 100)) + '% of original\n')
-        if lastMAs.loc[str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA2', 'Value'] and lastMAs.loc[str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA3', 'Value']:
+        if lastMAs.loc[str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA2', 'Value'] and lastMAs.loc[
+            str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA3', 'Value']:
             verdict = 'BUY'
         else:
             verdict = 'DONT BUY/SELL'
@@ -424,7 +472,7 @@ def ModePaperTrade():
             PrintAccountInfo(paperAccountInfo)
         except:
             notLogged = True
-            while(notLogged):
+            while (notLogged):
                 try:
                     loginInfo = ['', '']
                     print('Either WebullLogin.txt was not found or login failed.  Enter email manually: ', end='')
@@ -461,7 +509,8 @@ def ModeActualTrade():
     if currentMode != 'normal':
         print('Launching in actual trade mode...')
         print('WARNING!!! THIS MODE DEALS IN REAL MONEY! THE DEVELOPER IS NOT A FINANCIAL ADVISOR! USE AT OWN RISK!')
-        print('This mode functions almost identically to Paper mode (with same commands) except this mode allows the trading of Crypto Currency.')
+        print(
+            'This mode functions almost identically to Paper mode (with same commands) except this mode allows the trading of Crypto Currency.')
         print("I highly recommend using paper mode until you are familiar with Beholder and it's commands")
         print('-ls prints your account info and refreshes tracked tickers.')
         print('The command "watch" lets Beholder watch your portfolio and make trades.')
@@ -513,11 +562,11 @@ if currentMode == '':
         print(element)
     print('Welcome to the "Beholder" bot!\n')
     print('Please refer to the README.md file for operation instructions')
-    print('\nThe creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
+    print(
+        '\nThe creator of this bot is not liable for any losses or data theft that may happen as a result of this bot')
     print('The creator of this bot is not a financial advisor.  Use at your own risk')
     print('Beholder Bot was created by Tamblin Papendorp')
     print('\nWhat mode to you want to launch Beholder in?')
-
 
 while userInput != 'exit':
     print('BeholderCMD: ', end='')
