@@ -281,7 +281,7 @@ def AlgoTester(stockCSV, isQuiet):
             'EMA10': np.round(ema, decimals=3),
             'RSI': RSIPrice_df['RSI']
         })
-        AnalyzedCSVName = stockCSV[0:len(stockCSV) - 4] + '_ANALYZED.csv'
+        AnalyzedCSVName = stockCSV[0:len(stockCSV)] + '_ANALYZED.csv'
         analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
 
         # Time to run tests
