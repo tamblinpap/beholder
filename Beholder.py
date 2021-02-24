@@ -317,18 +317,29 @@ def AlgoTester(stockCSV, isQuiet):
         ema = modPrice.ewm(span=tempMANum1, adjust=False).mean()
 
         # Graphing the stats
-        plt.style.use('fivethirtyeight')
-        plt.figure(figsize=(12, 6))
-        plt.plot(closePrice, label='Adj Close Price', linewidth=2)
-        plt.plot(smaFirst, label=str(tempMANum1) + ' day SMA', linewidth=1)
-        plt.plot(smaSecond, label=str(tempMANum2) + ' day SMA', linewidth=2)
-        plt.plot(smaThird, label=str(tempMANum3) + ' day SMA', linewidth=3)
-        plt.plot(wma, label=str(tempMANum1) + ' day WMA', linewidth=2)
-        plt.plot(ema, label=str(tempMANum1) + ' day EMA', linewidth=1)
-        plt.xlabel('Date')
-        plt.ylabel('Adjusted closing price ($USD)')
-        plt.title(stockCSV[0:4] + ' Price with Moving Averages')
-        plt.legend()
+        if not isQuiet:
+            plt.style.use('fivethirtyeight')
+            plt.figure(figsize=(10, 5))
+            plt.plot(closePrice, label='Adj Close Price', linewidth=2)
+
+            # plt.plot(smaFirst, label=str(tempMANum1) + ' day SMA', linewidth=1)
+            # plt.plot(smaSecond, label=str(tempMANum2) + ' day SMA', linewidth=2)
+            # plt.plot(smaThird, label=str(tempMANum3) + ' day SMA', linewidth=3)
+            # plt.plot(wma, label=str(tempMANum1) + ' day WMA', linewidth=2)
+            # plt.plot(ema, label=str(tempMANum1) + ' day EMA', linewidth=1)
+            plt.xlabel('Date')
+            plt.ylabel('Adjusted closing price ($USD)')
+            plt.title(stockCSV[0:4] + ' Analysis')
+            plt.legend()
+            plt.show()
+
+            plt.style.use('fivethirtyeight')
+            plt.figure(figsize=(10, 5))
+            plt.plot(macd, label='MACD', linewidth=2)
+            plt.plot(sigLine, label=str(sigLineNum) + ' day Signal Line', linewidth=2)
+            plt.plot(RSIPrice_df['RSI'], label='RSI', linewidth=2)
+            plt.title('RSI and MACD')
+            plt.show()
 
         analyzedPrice_df = pd.DataFrame({
             'Adj Close': closePrice,
@@ -349,10 +360,10 @@ def AlgoTester(stockCSV, isQuiet):
         lastPrice = 0.0
         originalPrice = dataParsed.loc[dataParsed.index[0], dataParsed.columns[0]]
         dayNum = 1
-        holdingsTemp = [['SMA', 100.0, 0.0], ['WMA', 100.0, 0.0], ['EMA', 100.0, 0.0]]
+        holdingsTemp = [['RSI', 100.0, 0.0], ['MACD', 100.0, 0.0]]
         holdings = pd.DataFrame(holdingsTemp, columns=['Type', 'USD', 'Shares'])
-        tempData = [[0.0], [0.0], [0.0], [0.0], [0.0]]
-        lastMAs = pd.DataFrame(tempData, columns=['Value'], index=['SMA2', 'SMA3', 'SMA1', 'WMA1', 'EMA1'])
+        tempData = [[0.0], [0.0], [0.0]]
+        lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine'])
 
         if not isQuiet:
             print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[
@@ -365,84 +376,83 @@ def AlgoTester(stockCSV, isQuiet):
             SMA3 = dataParsed.loc[day, dataParsed.columns[3]]
             WMA1 = dataParsed.loc[day, dataParsed.columns[4]]
             EMA1 = dataParsed.loc[day, dataParsed.columns[5]]
+            RSI = dataParsed.loc[day, dataParsed.columns[6]]
+            MACD = dataParsed.loc[day, dataParsed.columns[7]]
+            sigLine = dataParsed.loc[day, dataParsed.columns[8]]
 
-            lastMAs.loc['SMA2', 'Value'] = SMA2
-            lastMAs.loc['SMA3', 'Value'] = SMA3
-            lastMAs.loc['SMA1', 'Value'] = SMA1
-            lastMAs.loc['WMA1', 'Value'] = WMA1
-            lastMAs.loc['EMA1', 'Value'] = EMA1
-            differentAls = [SMA1, WMA1, EMA1]
+            lastAlgoValues.loc['RSI', 'Value'] = RSI
+            lastAlgoValues.loc['MACD', 'Value'] = MACD
+            lastAlgoValues.loc['sigLine', 'Value'] = sigLine
+            differentAls = [RSI, MACD, sigLine]
             indexNum = 0
             lastPrice = dataParsed.loc[day, dataParsed.columns[0]]
 
-            for Als in differentAls:
-                if Als == SMA1:
-                    indexNum = 0
-                elif Als == WMA1:
-                    indexNum = 1
-                elif Als == EMA1:
-                    indexNum = 2
-                if math.isnan(Als) or math.isnan(SMA2) or math.isnan(SMA3):
-                    if not isQuiet:
-                        print('Not enough data to trade with.')
-                else:
-                    if Als > SMA2 and Als > SMA3 and holdings.loc[indexNum, 'USD'] > 0.0:
-                        if not isQuiet:
-                            print(
-                                'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                        holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD'] / lastPrice
-                        holdings.loc[indexNum, 'USD'] = 0.0
-                        # tradeDates.append(day)
-                    elif Als < SMA2 or SMA1 < SMA3:
-                        if holdings.loc[indexNum, 'Shares'] > 0.0:
-                            if not isQuiet:
-                                print('Selling Crypto/Stock at price of: $' + str(
-                                    dataParsed.loc[day, dataParsed.columns[0]]))
-                            holdings.loc[indexNum, 'USD'] = lastPrice * holdings.loc[indexNum, 'Shares']
-                            holdings.loc[indexNum, 'Shares'] = 0.0
-                            # tradeDates.append(day)
-                        else:
-                            if not isQuiet:
-                                print('Holdings optimal, no buying or selling.')
-                    else:
-                        if not isQuiet:
-                            print('Holdings optimal, no buying or selling.')
+            if math.isnan(RSI) or math.isnan(MACD) or math.isnan(sigLine):
                 if not isQuiet:
-                    print('Price: $' + str(lastPrice))
-                    print('USD holdings: ' + str(holdings.loc[indexNum, 'USD']))
-                    print('Crypto/Stock holdings: ' + str(holdings.loc[indexNum, 'Shares']) + '\n')
+                    print('Not enough data to trade with.')
+            else:
+                if MACD > sigLine and holdings.loc[1, 'USD'] > 0.0:
+                    if not isQuiet:
+                        print(
+                            'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                    holdings.loc[1, 'Shares'] = holdings.loc[1, 'USD'] / lastPrice
+                    holdings.loc[1, 'USD'] = 0.0
+                elif MACD < sigLine and holdings.loc[1, 'Shares'] > 0.0:
+                    if not isQuiet:
+                        print('Selling Crypto/Stock at price of: $' + str(
+                            dataParsed.loc[day, dataParsed.columns[0]]))
+                    holdings.loc[1, 'USD'] = lastPrice * holdings.loc[1, 'Shares']
+                    holdings.loc[1, 'Shares'] = 0.0
+                else:
+                    if not isQuiet:
+                        print('Holdings optimal, no buying or selling.')
+                if RSI < 50 and holdings.loc[indexNum, 'USD'] > 0.0:
+                    if not isQuiet:
+                        print(
+                            'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                    holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD'] / lastPrice
+                    holdings.loc[indexNum, 'USD'] = 0.0
+                    # tradeDates.append(day)
+                elif RSI > 90 and holdings.loc[indexNum, 'Shares'] > 0.0:
+                    if not isQuiet:
+                        print('Selling Crypto/Stock at price of: $' + str(
+                            dataParsed.loc[day, dataParsed.columns[0]]))
+                    holdings.loc[indexNum, 'USD'] = lastPrice * holdings.loc[indexNum, 'Shares']
+                    holdings.loc[indexNum, 'Shares'] = 0.0
+                    # tradeDates.append(day)
+                else:
+                    if not isQuiet:
+                        print('Holdings optimal, no buying or selling.')
+            if not isQuiet:
+                print('Price: $' + str(lastPrice))
+                print('USD holdings for RSI: ' + str(holdings.loc[indexNum, 'USD']))
+                print('Crypto/Stock holdings for RSI: ' + str(holdings.loc[indexNum, 'Shares']) + '\n')
+                print('USD holdings for MACD: ' + str(holdings.loc[1, 'USD']))
+                print('Crypto/Stock holdings for MACD: ' + str(holdings.loc[1, 'Shares']) + '\n')
             dayNum = dayNum + 1
 
         print('\nDone!')
         # print('Bot placed trades on these days:')
         # print(tradeDates)
-        bestAlgo = ''
-        bestAlgonum = 0.0
+        # bestAlgo = ''
+        # bestAlgonum = 0.0
         for holdingsIndex in holdings.index:
             print('For alg of ' + holdings.loc[holdingsIndex, 'Type'])
             if holdings.loc[holdingsIndex, 'USD'] > 0.0:
                 print('Final value of portfolio ' + str(
                     round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' +
                       holdings.loc[holdingsIndex, 'Type'] + ' algo')
-                if holdings.loc[holdingsIndex, 'USD'] > bestAlgonum:
-                    bestAlgonum = holdings.loc[holdingsIndex, 'USD']
-                    bestAlgo = holdings.loc[holdingsIndex, 'Type']
             else:
                 print('Final value of portfolio ' + str(
                     round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)) + '% of original with algo')
-                if round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice) > bestAlgonum:
-                    bestAlgonum = round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)
-                    bestAlgo = holdings.loc[holdingsIndex, 'Type']
-        print('\nBest algo to use on this portfolio is ' + bestAlgo)
         print('\nIf no algo was implemented portfolio would be ' + str(
             round((lastPrice / originalPrice) * 100)) + '% of original\n')
-        if lastMAs.loc[str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA2', 'Value'] and lastMAs.loc[
-            str(bestAlgo + '1'), 'Value'] > lastMAs.loc['SMA3', 'Value']:
-            verdict = 'BUY'
-        else:
-            verdict = 'DONT BUY/SELL'
-        print('Verdict today: ' + verdict)
-        plt.show()
+        # if lastAlgoValues.loc[str(bestAlgo + '1'), 'Value'] > lastAlgoValues.loc['SMA2', 'Value'] and lastAlgoValues.loc[
+        #     str(bestAlgo + '1'), 'Value'] > lastAlgoValues.loc['SMA3', 'Value']:
+        #     verdict = 'BUY'
+        # else:
+        #     verdict = 'DONT BUY/SELL'
+        # print('Verdict today: ' + verdict)
     elif type(stockCSV) == list:
         print('Preparing to test algorithms on list of tickers...')
         for tickerCode in stockCSV:
