@@ -154,6 +154,10 @@ def ParseUserInput(inputStr):
             PrintAccountInfo(pwb.get_account())
         elif inputStr[0:2] == '-t':
             AlgoTester(GetDataList('paper'), True)
+        elif inputStr[0:4] == '-add':
+            WatchedTickerList(inputStr[1:4], inputStr[5:len(inputStr)])
+        elif inputStr[0:3] == '-rm':
+            WatchedTickerList(inputStr[1:3], inputStr[4:len(inputStr)])
     elif currentMode == 'normal':
         if inputStr == 'watch':
             return
@@ -163,6 +167,10 @@ def ParseUserInput(inputStr):
             PrintAccountInfo(wb.get_account())
         elif inputStr[0:2] == '-t':
             AlgoTester(GetDataList('normal'), True)
+        elif inputStr[0:4] == '-add':
+            WatchedTickerList(inputStr[1:4], inputStr[5:len(inputStr)])
+        elif inputStr[0:3] == '-rm':
+            WatchedTickerList(inputStr[1:3], inputStr[4:len(inputStr)])
     else:
         print('Not a valid command.')
 
@@ -618,12 +626,45 @@ def Watch(watchedTickers):
 # Makes changes to the watched tickers lists
 def WatchedTickerList(addOrRm, ticker):
     global currentMode
+    path = ''
     if currentMode == 'paper':
         try:
-            watchList = open('Info/Paper/WatchList.txt')
+            path = 'Info/Paper/WatchList.txt'
+            watchListTXT = open(path, 'r')
         except:
             with open('Info/Paper/WatchList.txt', 'w') as output:
                 output.write('')
+            WatchedTickerList(addOrRm, ticker)
+            return
+    elif currentMode == 'normal':
+        try:
+            path = 'Info/Normal/WatchList.txt'
+            watchListTXT = open(path, 'r')
+        except:
+            with open('Info/Normal/WatchList.txt', 'w') as output:
+                output.write('')
+            WatchedTickerList(addOrRm, ticker)
+            return
+    with watchListTXT as WCSV:
+        watchList = WCSV.readlines()
+    if addOrRm == 'rm':
+        for t in watchList:
+            if t == ticker:
+                watchList.remove(t)
+                print(ticker + ' was removed from ' + currentMode + ' watchlist')
+                break
+    elif addOrRm == 'add':
+        for t in watchList:
+            if t == ticker:
+                print(ticker + ' is already on' + currentMode + 'watchlist.')
+                return
+        watchList.append(ticker)
+        print(ticker + ' was added to' + currentMode + 'watchlist')
+    else:
+        print('addOrRm variable is not valid')
+        return
+    with open(path, 'w') as output:
+        output.writelines(watchList)
 
 
 # Starting user interaction
