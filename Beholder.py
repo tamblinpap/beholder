@@ -25,6 +25,7 @@ currentMode = ''
 lastLook = ''
 
 
+# Saves as CSV
 def SaveAsCSV(dataFrame):
     dataFrame.to_csv('Data/' + dataFrame + '.csv')
 
@@ -623,7 +624,6 @@ def WatchedTickerList(addOrRm, ticker):
         except:
             with open('Info/Paper/WatchList.txt', 'w') as output:
                 output.write('')
-
 
 
 # Starting user interaction
