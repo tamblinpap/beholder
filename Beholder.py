@@ -22,6 +22,7 @@ pwb = paper_webull()
 wb = webull()
 userInput = ''
 currentMode = ''
+lastLook = ''
 
 
 def SaveAsCSV(dataFrame):
@@ -518,10 +519,18 @@ def ModePaperTrade():
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
             try:
-                print('Beholder is watching...')
-                print('Press Ctrl^C to stop him...')
-                while True:
-                    x = 0
+                print('Beholder is watching:')
+                try:
+                    watchedTickers = open('Info/Paper/WatchList.txt')
+                    watchedTickers = watchedTickers.readlines()
+                    print(watchedTickers)
+                    print('Press Ctrl^C to stop him...')
+                    keepWatching = True
+                except:
+                    print('No holdings tracked so Beholder watches nothing.  Use the -add command.')
+                    keepWatching = False
+                while keepWatching:
+                    Watch(watchedTickers)
             except:
                 print('Closing his eyes...')
         print('BeholderCMD/PaperTrading: ', end='')
@@ -572,10 +581,18 @@ def ModeActualTrade():
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
             try:
-                print('Beholder is watching...')
-                print('Press Ctrl^C to stop him...')
-                while True:
-                    x = 0
+                print('Beholder is watching:')
+                try:
+                    watchedTickers = open('Info/Normal/WatchList.txt')
+                    watchedTickers = watchedTickers.readlines()
+                    print(watchedTickers)
+                    print('Press Ctrl^C to stop him...')
+                    keepWatching = True
+                except:
+                    print('No holdings tracked so Beholder watches nothing.  Use the -add command.')
+                    keepWatching = False
+                while keepWatching:
+                    Watch(watchedTickers)
             except:
                 print('Closing his eyes...')
         print('BeholderCMD/NormalTrading: ', end='')
@@ -586,8 +603,27 @@ def ModeActualTrade():
 
 
 # Runs ongoing
-def Watch(tradingMode):
-    print(tradingMode)
+def Watch(watchedTickers):
+    global currentMode
+    global lastLook
+    if lastLook == '':
+        GetDataList(watchedTickers)
+    if currentMode == 'paper':
+        x = 0
+    elif currentMode == 'normal':
+        x = 0
+
+
+# Makes changes to the watched tickers lists
+def WatchedTickerList(addOrRm, ticker):
+    global currentMode
+    if currentMode == 'paper':
+        try:
+            watchList = open('Info/Paper/WatchList.txt')
+        except:
+            with open('Info/Paper/WatchList.txt', 'w') as output:
+                output.write('')
+
 
 
 # Starting user interaction
