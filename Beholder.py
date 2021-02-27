@@ -370,10 +370,11 @@ def AlgoTester(stockCSV, isQuiet):
         lastPrice = 0.0
         originalPrice = dataParsed.loc[dataParsed.index[0], dataParsed.columns[0]]
         dayNum = 1
-        holdingsTemp = [['RSI', 100.0, 0.0], ['MACD', 100.0, 0.0]]
+        holdingsTemp = [['RSI', 100.0, 0.0], ['MACD', 100.0, 0.0], ['WEIGHT', 100.0, 0.0]]
         holdings = pd.DataFrame(holdingsTemp, columns=['Type', 'USD', 'Shares'])
         tempData = [[0.0], [0.0], [0.0]]
         lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine'])
+        seerersIndex = 0
 
         if not isQuiet:
             print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[
@@ -626,11 +627,13 @@ def Watch(watchedTickers):
 # Makes changes to the watched tickers lists
 def WatchedTickerList(addOrRm, ticker):
     global currentMode
+    hasTicker = False
     path = ''
     if currentMode == 'paper':
         try:
-            path = 'Info/Paper/WatchList.txt'
-            watchListTXT = open(path, 'r')
+            path = 'Info/Paper/'
+            watchListTXT = open(path + 'WatchList.txt', 'r')
+            tickerListTXT = open(path + 'Tickers.txt', 'r')
         except:
             with open('Info/Paper/WatchList.txt', 'w') as output:
                 output.write('')
@@ -638,32 +641,49 @@ def WatchedTickerList(addOrRm, ticker):
             return
     elif currentMode == 'normal':
         try:
-            path = 'Info/Normal/WatchList.txt'
-            watchListTXT = open(path, 'r')
+            path = 'Info/Normal/'
+            watchListTXT = open(path + 'WatchList.txt', 'r')
+            tickerListTXT = open(path + 'Tickers.txt', 'r')
         except:
             with open('Info/Normal/WatchList.txt', 'w') as output:
                 output.write('')
             WatchedTickerList(addOrRm, ticker)
             return
-    with watchListTXT as WCSV:
-        watchList = WCSV.readlines()
+    with watchListTXT as WL:
+        watchList = WL.readlines()
+    with tickerListTXT as TL:
+        tickerList = TL.readlines()
     if addOrRm == 'rm':
         for t in watchList:
+            if t[len(t)-1:len(t)] == '\n':
+                t = t[0:len(t)-1]
             if t == ticker:
-                watchList.remove(t)
+                watchList.remove(t + '\n')
                 print(ticker + ' was removed from ' + currentMode + ' watchlist')
                 break
     elif addOrRm == 'add':
         for t in watchList:
+            if t[len(t)-1:len(t)] == '\n':
+                t = t[0:len(t)-1]
             if t == ticker:
                 print(ticker + ' is already on' + currentMode + 'watchlist.')
                 return
-        watchList.append(ticker)
-        print(ticker + ' was added to' + currentMode + 'watchlist')
+        for j in tickerList:
+            if j[len(j)-1:len(j)] == '\n':
+                j = j[0:len(j)-1]
+            if j == ticker:
+                hasTicker = True
+                break
+        if hasTicker:
+            watchList.append(ticker + '\n')
+            print(ticker + ' was added to' + currentMode + 'watchlist')
+        else:
+            print('Cannot add a ticker to watchlist that you do not own.')
+            return
     else:
         print('addOrRm variable is not valid')
         return
-    with open(path, 'w') as output:
+    with open(path + 'WatchList.txt', 'w') as output:
         output.writelines(watchList)
 
 
