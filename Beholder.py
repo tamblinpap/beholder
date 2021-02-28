@@ -374,7 +374,10 @@ def AlgoTester(stockCSV, isQuiet):
         holdings = pd.DataFrame(holdingsTemp, columns=['Type', 'USD', 'Shares'])
         tempData = [[0.0], [0.0], [0.0]]
         lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine'])
-        seerersIndex = 0
+
+        seerersIndex = 0.0
+        RSIWeight = 0.0
+        MACDWeight = 0.0
 
         if not isQuiet:
             print('\n\nStarting simulation of bot from ' + dataParsed.index[0] + ' to ' + dataParsed.index[
@@ -402,38 +405,41 @@ def AlgoTester(stockCSV, isQuiet):
                 if not isQuiet:
                     print('Not enough data to trade with.')
             else:
-                if MACD > sigLine and holdings.loc[1, 'USD'] > 0.0:
-                    if not isQuiet:
-                        print(
-                            'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[1, 'Shares'] = holdings.loc[1, 'USD'] / lastPrice
-                    holdings.loc[1, 'USD'] = 0.0
-                elif MACD < sigLine and holdings.loc[1, 'Shares'] > 0.0:
-                    if not isQuiet:
-                        print('Selling Crypto/Stock at price of: $' + str(
-                            dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[1, 'USD'] = lastPrice * holdings.loc[1, 'Shares']
-                    holdings.loc[1, 'Shares'] = 0.0
+                if MACD > sigLine:
+                    if holdings.loc[1, 'USD'] > 0.0:
+                        if not isQuiet:
+                            print(
+                                'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[1, 'Shares'] = holdings.loc[1, 'USD'] / lastPrice
+                        holdings.loc[1, 'USD'] = 0.0
+                elif MACD < sigLine:
+                    if holdings.loc[1, 'Shares'] > 0.0:
+                        if not isQuiet:
+                            print('Selling Crypto/Stock at price of: $' + str(
+                                dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[1, 'USD'] = lastPrice * holdings.loc[1, 'Shares']
+                        holdings.loc[1, 'Shares'] = 0.0
                 else:
                     if not isQuiet:
                         print('Holdings optimal, no buying or selling.')
-                if RSI < 50 and holdings.loc[indexNum, 'USD'] > 0.0:
-                    if not isQuiet:
-                        print(
-                            'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD'] / lastPrice
-                    holdings.loc[indexNum, 'USD'] = 0.0
-                    # tradeDates.append(day)
-                elif RSI > 90 and holdings.loc[indexNum, 'Shares'] > 0.0:
-                    if not isQuiet:
-                        print('Selling Crypto/Stock at price of: $' + str(
-                            dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[indexNum, 'USD'] = lastPrice * holdings.loc[indexNum, 'Shares']
-                    holdings.loc[indexNum, 'Shares'] = 0.0
-                    # tradeDates.append(day)
+                if RSI < 50:
+                    if holdings.loc[indexNum, 'USD'] > 0.0:
+                        if not isQuiet:
+                            print(
+                                'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[indexNum, 'Shares'] = holdings.loc[indexNum, 'USD'] / lastPrice
+                        holdings.loc[indexNum, 'USD'] = 0.0
+                elif RSI > 90:
+                    if holdings.loc[indexNum, 'Shares'] > 0.0:
+                        if not isQuiet:
+                            print('Selling Crypto/Stock at price of: $' + str(
+                                dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[indexNum, 'USD'] = lastPrice * holdings.loc[indexNum, 'Shares']
+                        holdings.loc[indexNum, 'Shares'] = 0.0
                 else:
                     if not isQuiet:
                         print('Holdings optimal, no buying or selling.')
+                seerersIndex = RSIWeight + MACDWeight
             if not isQuiet:
                 print('Price: $' + str(lastPrice))
                 print('USD holdings for RSI: ' + str(holdings.loc[indexNum, 'USD']))
