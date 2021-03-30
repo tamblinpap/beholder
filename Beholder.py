@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yfinance as yf
 import math
-from datetime import datetime
 import datetime
+from datetime import date
 from pycoingecko import CoinGeckoAPI
 from webull import webull
 from webull import paper_webull
@@ -22,8 +22,7 @@ pwb = paper_webull()
 wb = webull()
 userInput = ''
 currentMode = ''
-lastLook = ''
-
+lastLook = None
 
 # Saves as CSV
 def SaveAsCSV(dataFrame):
@@ -656,12 +655,14 @@ def ModeActualTrade():
 def Watch(watchedTickers):
     global currentMode
     global lastLook
-    if lastLook == '':
-        GetDataList(watchedTickers)
-    if currentMode == 'paper':
-        x = 0
-    elif currentMode == 'normal':
-        x = 0
+    tempDay = datetime.date.today()
+    if tempDay != lastLook:
+        lastLook = datetime.date.today()
+        print('Checking prices for ' + lastLook)
+        if currentMode == 'paper':
+            x = 0
+        elif currentMode == 'normal':
+            x = 0
 
 
 # Makes changes to the watched tickers lists
