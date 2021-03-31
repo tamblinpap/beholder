@@ -368,7 +368,7 @@ def AlgoTester(stockCSV, isQuiet):
             str(sigLineNum) + ' DAY SIGNAL LINE': sigLine,
             'ALGO/VERDICT': None
         })
-        AnalyzedCSVName = stockCSV[0:len(stockCSV)] + '_ANALYZED.csv'
+        AnalyzedCSVName = stockCSV[0:len(stockCSV)] + '_' + str(datetime.date.today()) + '_ANALYZED.csv'
         analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
 
         # Time to run tests
@@ -520,6 +520,19 @@ def AlgoTester(stockCSV, isQuiet):
             round((lastPrice / originalPrice) * 100)) + '% of original\n')
         verdict = lastAlgoValues.loc[bestAlgo, 'Verdict']
         print('Verdict today with ' + bestAlgo + ' algo: ' + verdict + '\n')
+        analyzedPrice_df = pd.DataFrame({
+            'Adj Close': closePrice,
+            'SMA ' + str(tempMANum1): smaFirst,
+            'SMA ' + str(tempMANum2): smaSecond,
+            'SMA ' + str(tempMANum3): smaThird,
+            'WMA10': np.round(wma, decimals=3),
+            'EMA10': np.round(ema, decimals=3),
+            'RSI': RSIPrice_df['RSI'],
+            'MACD': macd,
+            str(sigLineNum) + ' DAY SIGNAL LINE': sigLine,
+            'ALGO/VERDICT': bestAlgo + ':' + verdict
+        })
+        analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
     elif type(stockCSV) == list:
         print('Preparing to test algorithms on list of tickers...')
         for tickerCode in stockCSV:
