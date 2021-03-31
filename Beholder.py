@@ -378,8 +378,8 @@ def AlgoTester(stockCSV, isQuiet):
         dayNum = 1
         holdingsTemp = [['RSI', 100.0, 0.0], ['MACD', 100.0, 0.0], ['WEIGHT', 100.0, 0.0]]
         holdings = pd.DataFrame(holdingsTemp, columns=['Type', 'USD', 'Shares'])
-        tempData = [[0.0], [0.0], [0.0], [0.0]]
-        lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine', 'WEIGHT'])
+        tempData = [[0.0, 'N/A'], [0.0, 'N/A'], [0.0, 'N/A'], [0.0, 'N/A']]
+        lastAlgoValues = pd.DataFrame(tempData, columns=['Value', 'Verdict'], index=['RSI', 'MACD', 'sigLine', 'WEIGHT'])
 
         seerersIndex = 0.0
         RSIWeight = 0.0
@@ -412,6 +412,7 @@ def AlgoTester(stockCSV, isQuiet):
                     print('Not enough data to trade with.')
             else:
                 if MACD > sigLine:
+                    lastAlgoValues.loc['MACD', 'Verdict'] = 'BUY'
                     MACDWeight = 10
                     if holdings.loc[1, 'USD'] > 0.0:
                         if not isQuiet:
@@ -423,6 +424,7 @@ def AlgoTester(stockCSV, isQuiet):
                         if not isQuiet:
                             print('Holdings optimal, no buying or selling.')
                 elif MACD < sigLine:
+                    lastAlgoValues.loc['MACD', 'Verdict'] = 'SELL'
                     MACDWeight = -10
                     if holdings.loc[1, 'Shares'] > 0.0:
                         if not isQuiet:
@@ -434,6 +436,7 @@ def AlgoTester(stockCSV, isQuiet):
                         if not isQuiet:
                             print('Holdings optimal, no buying or selling.')
                 if RSI < 20:
+                    lastAlgoValues.loc['RSI', 'Verdict'] = 'BUY'
                     RSIWeight = 1
                     if holdings.loc[indexNum, 'USD'] > 0.0:
                         if not isQuiet:
@@ -445,6 +448,7 @@ def AlgoTester(stockCSV, isQuiet):
                         if not isQuiet:
                             print('Holdings optimal, no buying or selling.')
                 elif 50 > RSI > 20:
+                    lastAlgoValues.loc['RSI', 'Verdict'] = 'BUY'
                     RSIWeight = 0
                     if holdings.loc[indexNum, 'USD'] > 0.0:
                         if not isQuiet:
@@ -456,6 +460,7 @@ def AlgoTester(stockCSV, isQuiet):
                         if not isQuiet:
                             print('Holdings optimal, no buying or selling.')
                 elif RSI > 90:
+                    lastAlgoValues.loc['RSI', 'Verdict'] = 'SELL'
                     RSIWeight = -1
                     if holdings.loc[indexNum, 'Shares'] > 0.0:
                         if not isQuiet:
@@ -469,18 +474,22 @@ def AlgoTester(stockCSV, isQuiet):
                 # Start Weighting
                 seerersIndex = RSIWeight + MACDWeight
                 lastAlgoValues.loc['WEIGHT', 'Value'] = seerersIndex
-                if seerersIndex >= 10 and holdings.loc[2, 'USD'] > 0.0:
-                    if not isQuiet:
-                        print(
-                            'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[2, 'Shares'] = holdings.loc[2, 'USD'] / lastPrice
-                    holdings.loc[2, 'USD'] = 0.0
-                elif seerersIndex <= -10 and holdings.loc[2, 'Shares'] > 0.0:
-                    if not isQuiet:
-                        print('Selling Crypto/Stock at price of: $' + str(
-                            dataParsed.loc[day, dataParsed.columns[0]]))
-                    holdings.loc[2, 'USD'] = lastPrice * holdings.loc[2, 'Shares']
-                    holdings.loc[2, 'Shares'] = 0.0
+                if seerersIndex >= 10:
+                    lastAlgoValues.loc['WEIGHT', 'Verdict'] = 'BUY'
+                    if holdings.loc[2, 'USD'] > 0.0:
+                        if not isQuiet:
+                            print(
+                                'Buying Crypto/Stock at price of: $' + str(dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[2, 'Shares'] = holdings.loc[2, 'USD'] / lastPrice
+                        holdings.loc[2, 'USD'] = 0.0
+                elif seerersIndex <= -10:
+                    lastAlgoValues.loc['WEIGHT', 'Verdict'] = 'SELL'
+                    if holdings.loc[2, 'Shares'] > 0.0:
+                        if not isQuiet:
+                            print('Selling Crypto/Stock at price of: $' + str(
+                                dataParsed.loc[day, dataParsed.columns[0]]))
+                        holdings.loc[2, 'USD'] = lastPrice * holdings.loc[2, 'Shares']
+                        holdings.loc[2, 'Shares'] = 0.0
             if not isQuiet:
                 print('Price: $' + str(lastPrice))
                 print('USD holdings for RSI: ' + str(holdings.loc[indexNum, 'USD']))
@@ -509,7 +518,8 @@ def AlgoTester(stockCSV, isQuiet):
                 bestAlgo = tempAlgo
         print('\nIf no algo was implemented portfolio would be ' + str(
             round((lastPrice / originalPrice) * 100)) + '% of original\n')
-        print('Verdict today with ' + bestAlgo + ' algo : ' + verdict)
+        verdict = lastAlgoValues.loc[bestAlgo, 'Verdict']
+        print('Verdict today with ' + bestAlgo + ' algo: ' + verdict + '\n')
     elif type(stockCSV) == list:
         print('Preparing to test algorithms on list of tickers...')
         for tickerCode in stockCSV:
