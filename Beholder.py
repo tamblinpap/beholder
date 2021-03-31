@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import math
 import datetime
-from datetime import date
 from pycoingecko import CoinGeckoAPI
 from webull import webull
 from webull import paper_webull
@@ -22,7 +21,7 @@ pwb = paper_webull()
 wb = webull()
 userInput = ''
 currentMode = ''
-lastLook = None
+lastLook = datetime.date.min
 
 # Saves as CSV
 def SaveAsCSV(dataFrame):
@@ -181,6 +180,9 @@ def GetDataList(accountType):
         tickerText = open('Info/Paper/Tickers.txt')
     elif accountType == 'normal':
         tickerText = open('Info/Normal/Tickers.txt')
+    else:
+        print('Error not in paper of normal trading mode')
+        return
     with tickerText as f:
         tickerList = f.readlines()
     for tickerCode in tickerList:
@@ -192,43 +194,47 @@ def GetDataList(accountType):
 # This method pulls csv files from the yahoo finance API and saves them as csv files
 def GetData(tickerC, isQuiet):
     # gets ticker csv files and deletes old ones
-    tickerCode = tickerC
-    if tickerCode == '' or tickerCode == '\n' or tickerCode == ' ':
-        return
-    if tickerCode[len(tickerCode) - 1:len(tickerCode)] == '\n':
-        tickerCode = tickerCode[0:len(tickerCode) - 1]
-    if tickerCode[len(tickerCode) - 3:len(tickerCode)] == 'USD' and tickerCode[
-                                                                    len(tickerCode) - 4:len(tickerCode) - 3] != '-':
-        tickerCode = tickerCode[0:len(tickerCode) - 3]
-        print(tickerCode)
-    if not isQuiet:
-        print('Attempting to get historical data for ' + tickerCode + '...')
-    stock = yf.download(tickers=tickerCode, period='MAX')
-    if len(stock) > 0:
+    if type(tickerC) == type('string'):
+        tickerCode = tickerC
+        if tickerCode == '' or tickerCode == '\n' or tickerCode == ' ':
+            return
+        if tickerCode[len(tickerCode) - 1:len(tickerCode)] == '\n':
+            tickerCode = tickerCode[0:len(tickerCode) - 1]
+        if tickerCode[len(tickerCode) - 3:len(tickerCode)] == 'USD' and tickerCode[
+                                                                        len(tickerCode) - 4:len(tickerCode) - 3] != '-':
+            tickerCode = tickerCode[0:len(tickerCode) - 3]
+            print(tickerCode)
         if not isQuiet:
-            print('Found stock data for ' + tickerCode)
-        stockSaveName = 'Data/' + tickerCode + '_' + str(datetime.date.today()) + '_stats.csv'
-        for file in os.listdir('Data'):
-            if file[len(file) - 9:len(file)] == 'stats.csv':
-                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] != '-':
-                    os.remove('Data/' + file)
-        stock.to_csv(stockSaveName)
+            print('Attempting to get historical data for ' + tickerCode + '...')
+        stock = yf.download(tickers=tickerCode, period='MAX')
+        if len(stock) > 0:
+            if not isQuiet:
+                print('Found stock data for ' + tickerCode)
+            stockSaveName = 'Data/' + tickerCode + '_' + str(datetime.date.today()) + '_stats.csv'
+            for file in os.listdir('Data'):
+                if file[len(file) - 9:len(file)] == 'stats.csv':
+                    if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] != '-':
+                        os.remove('Data/' + file)
+            stock.to_csv(stockSaveName)
+        else:
+            if not isQuiet:
+                print('No stock data found for ' + tickerCode + '.  Trying crypto...')
+        stock = yf.download(tickers=tickerCode + "-USD", period='MAX')
+        if len(stock) > 0:
+            if not isQuiet:
+                print('Found crypto data for ' + tickerCode + '-USD')
+            stockSaveName = 'Data/' + tickerCode + '-USD_' + str(datetime.date.today()) + '_stats.csv'
+            for file in os.listdir('Data'):
+                if file[len(file) - 9:len(file)] == 'stats.csv':
+                    if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] == '-':
+                        os.remove('Data/' + file)
+            stock.to_csv(stockSaveName)
+        else:
+            if not isQuiet:
+                print('No crypto data was found for ' + tickerCode + '-USD.')
     else:
-        if not isQuiet:
-            print('No stock data found for ' + tickerCode + '.  Trying crypto...')
-    stock = yf.download(tickers=tickerCode + "-USD", period='MAX')
-    if len(stock) > 0:
-        if not isQuiet:
-            print('Found crypto data for ' + tickerCode + '-USD')
-        stockSaveName = 'Data/' + tickerCode + '-USD_' + str(datetime.date.today()) + '_stats.csv'
-        for file in os.listdir('Data'):
-            if file[len(file) - 9:len(file)] == 'stats.csv':
-                if file[0:len(tickerCode)] == tickerCode and file[len(tickerCode):len(tickerCode) + 1] == '-':
-                    os.remove('Data/' + file)
-        stock.to_csv(stockSaveName)
-    else:
-        if not isQuiet:
-            print('No crypto data was found for ' + tickerCode + '-USD.')
+        for x in tickerC:
+            GetData(x, isQuiet)
 
 
 # This method runs all the data analysis algorithms on a ticker or list of tickers
@@ -359,7 +365,8 @@ def AlgoTester(stockCSV, isQuiet):
             'EMA10': np.round(ema, decimals=3),
             'RSI': RSIPrice_df['RSI'],
             'MACD': macd,
-            str(sigLineNum) + ' DAY SIGNAL LINE': sigLine
+            str(sigLineNum) + ' DAY SIGNAL LINE': sigLine,
+            'ALGO/VERDICT': None
         })
         AnalyzedCSVName = stockCSV[0:len(stockCSV)] + '_ANALYZED.csv'
         analyzedPrice_df.to_csv('Data/Analyzed/' + AnalyzedCSVName)
@@ -371,8 +378,8 @@ def AlgoTester(stockCSV, isQuiet):
         dayNum = 1
         holdingsTemp = [['RSI', 100.0, 0.0], ['MACD', 100.0, 0.0], ['WEIGHT', 100.0, 0.0]]
         holdings = pd.DataFrame(holdingsTemp, columns=['Type', 'USD', 'Shares'])
-        tempData = [[0.0], [0.0], [0.0]]
-        lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine'])
+        tempData = [[0.0], [0.0], [0.0], [0.0]]
+        lastAlgoValues = pd.DataFrame(tempData, columns=['Value'], index=['RSI', 'MACD', 'sigLine', 'WEIGHT'])
 
         seerersIndex = 0.0
         RSIWeight = 0.0
@@ -461,6 +468,7 @@ def AlgoTester(stockCSV, isQuiet):
                             print('Holdings optimal, no buying or selling.')
                 # Start Weighting
                 seerersIndex = RSIWeight + MACDWeight
+                lastAlgoValues.loc['WEIGHT', 'Value'] = seerersIndex
                 if seerersIndex >= 10 and holdings.loc[2, 'USD'] > 0.0:
                     if not isQuiet:
                         print(
@@ -484,25 +492,24 @@ def AlgoTester(stockCSV, isQuiet):
         print('\nDone!')
         # print('Bot placed trades on these days:')
         # print(tradeDates)
-        # bestAlgo = ''
-        # bestAlgonum = 0.0
+        verdict = ''
+        bestAlgo = ''
+        bestAlgoNum = 0.0
         for holdingsIndex in holdings.index:
             print('For alg of ' + holdings.loc[holdingsIndex, 'Type'])
+            tempAlgo = holdings.loc[holdingsIndex, 'Type']
             if holdings.loc[holdingsIndex, 'USD'] > 0.0:
-                print('Final value of portfolio ' + str(
-                    round(holdings.loc[holdingsIndex, 'USD'])) + '% of original with ' +
-                      holdings.loc[holdingsIndex, 'Type'] + ' algo')
+                tempAlgoNum = round(holdings.loc[holdingsIndex, 'USD'])
+                print('Final value of portfolio ' + str(tempAlgoNum) + '% of original with ' + tempAlgo + ' algo')
             else:
-                print('Final value of portfolio ' + str(
-                    round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)) + '% of original with algo')
+                tempAlgoNum = round(holdings.loc[holdingsIndex, 'Shares'] * lastPrice)
+                print('Final value of portfolio ' + str(tempAlgoNum) + '% of original with' + tempAlgo + 'algo')
+            if tempAlgoNum > bestAlgoNum:
+                bestAlgoNum = tempAlgoNum
+                bestAlgo = tempAlgo
         print('\nIf no algo was implemented portfolio would be ' + str(
             round((lastPrice / originalPrice) * 100)) + '% of original\n')
-        # if lastAlgoValues.loc[str(bestAlgo + '1'), 'Value'] > lastAlgoValues.loc['SMA2', 'Value'] and lastAlgoValues.loc[
-        #     str(bestAlgo + '1'), 'Value'] > lastAlgoValues.loc['SMA3', 'Value']:
-        #     verdict = 'BUY'
-        # else:
-        #     verdict = 'DONT BUY/SELL'
-        # print('Verdict today: ' + verdict)
+        print('Verdict today with ' + bestAlgo + ' algo : ' + verdict)
     elif type(stockCSV) == list:
         print('Preparing to test algorithms on list of tickers...')
         for tickerCode in stockCSV:
@@ -656,9 +663,11 @@ def Watch(watchedTickers):
     global currentMode
     global lastLook
     tempDay = datetime.date.today()
-    if tempDay != lastLook:
-        lastLook = datetime.date.today()
-        print('Checking prices for ' + lastLook)
+    if tempDay.day != lastLook.day:
+        lastLook = tempDay
+        GetData(watchedTickers, True)
+        print('\nUpdated prices for:')
+        print(watchedTickers)
         if currentMode == 'paper':
             x = 0
         elif currentMode == 'normal':
