@@ -21,6 +21,7 @@ pwb = paper_webull()
 wb = webull()
 userInput = ''
 currentMode = ''
+availableMoney = 0.0
 lastLook = datetime.date.min
 
 # Saves as CSV
@@ -564,6 +565,7 @@ def ModePaperTrade():
     global currentMode
     global userInput
     global pwb
+    global availableMoney
     if currentMode != 'paper':
         print('Launching in paper trade mode...\n')
         print('Paper mode is a simulated trading mode (that works only with stocks and not crypto) run through Webull.')
@@ -594,6 +596,7 @@ def ModePaperTrade():
                     notLogged = False
                 except:
                     notLogged = True
+    availableMoney = paperAccountInfo['accountMembers'][1]['value']
     currentMode = 'paper'
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
@@ -624,6 +627,7 @@ def ModeActualTrade():
     global currentMode
     global userInput
     global wb
+    global availableMoney
     if currentMode != 'normal':
         print('Launching in actual trade mode...')
         print('WARNING!!! THIS MODE DEALS IN REAL MONEY! THE DEVELOPER IS NOT A FINANCIAL ADVISOR! USE AT OWN RISK!')
@@ -656,6 +660,7 @@ def ModeActualTrade():
                     notLogged = False
                 except:
                     notLogged = True
+    availableMoney = NormalAccountInfo['accountMembers'][1]['value']
     currentMode = 'normal'
     while userInput != 'return' and userInput != 'exit':
         if userInput == 'watch':
@@ -698,8 +703,9 @@ def Watch(watchedTickers):
 
 
 # Makes changes to the watched tickers lists
-def WatchedTickerList(addOrRm, ticker):
+def WatchedTickerList(addOrRm, ticker, ):
     global currentMode
+    global availableMoney
     hasTicker = False
     path = ''
     if currentMode == 'paper':
